@@ -45,7 +45,7 @@ class SigmoidVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = SigmoidArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = SigmoidArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

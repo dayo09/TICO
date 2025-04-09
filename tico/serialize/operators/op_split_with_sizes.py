@@ -45,7 +45,7 @@ class SplitWithSizesVisitor(NodeVisitor):
         op_index = get_op_index(
             circle.BuiltinOperator.BuiltinOperator.SPLIT_V, self._op_codes
         )
-        args = SplitWithSizesArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = SplitWithSizesArgs(*node.args, **node.kwargs)
         input = args.input
         split_sizes = args.split_sizes
         axis = args.dim

@@ -48,7 +48,7 @@ def _annotate_conv2d(
         if quant_utils.is_annotated(node):
             continue
 
-        args = Conv2DArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = Conv2DArgs(*node.args, **node.kwargs)
         input_ = args.input
         weight = args.weight
         bias = args.bias

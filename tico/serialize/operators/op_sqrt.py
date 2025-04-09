@@ -42,7 +42,7 @@ class SqrtVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.SQRT, self._op_codes
         )
 
-        args = SqrtArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = SqrtArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

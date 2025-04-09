@@ -37,7 +37,7 @@ class CatVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = CatArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = CatArgs(*node.args, **node.kwargs)
         tensors = args.tensors
         dim = args.dim
 

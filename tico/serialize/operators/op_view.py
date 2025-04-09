@@ -47,7 +47,7 @@ class ViewVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.RESHAPE,
             self._op_codes,
         )
-        args = ViewArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ViewArgs(*node.args, **node.kwargs)
         input = args.input
         size = args.size
 

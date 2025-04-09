@@ -63,7 +63,7 @@ class MaxPool2DWithIndicesVisitor(NodeVisitor):
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
         # max_pool2d_with_indices(Tensor self, int[2] kernel_size, int[2] stride=[], int[2] padding=0, int[2] dilation=1, bool ceil_mode=False) -> (Tensor, Tensor)
-        args = MaxPool2dWithIndicesArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = MaxPool2dWithIndicesArgs(*node.args, **node.kwargs)
         input = args.input
         kernel_size = args.kernel_size
         stride = args.stride

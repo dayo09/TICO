@@ -40,7 +40,7 @@ class EmbeddingVisitor(NodeVisitor):
         op_index = get_op_index(
             circle.BuiltinOperator.BuiltinOperator.GATHER, self._op_codes
         )
-        args = EmbeddingArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = EmbeddingArgs(*node.args, **node.kwargs)
         # do not need to handle optional parameters, since all options are related to Embedding Table values.
         embedding_table = args.weight
         index_tensor = args.indices

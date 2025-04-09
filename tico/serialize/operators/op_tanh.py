@@ -40,7 +40,7 @@ class TanhVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = TanhArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = TanhArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

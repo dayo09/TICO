@@ -39,7 +39,7 @@ class IndexTensorVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = IndexArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = IndexArgs(*node.args, **node.kwargs)
         tensor = args.input
         indices = args.indices
 

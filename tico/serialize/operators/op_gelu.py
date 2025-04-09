@@ -40,7 +40,7 @@ class GeluVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = GeluArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = GeluArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

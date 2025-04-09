@@ -41,7 +41,7 @@ class LinearVisitor(NodeVisitor):
         op_index = get_op_index(
             circle.BuiltinOperator.BuiltinOperator.FULLY_CONNECTED, self._op_codes
         )
-        args = LinearArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = LinearArgs(*node.args, **node.kwargs)
         input = args.input
         weight = args.weight
         bias = args.bias

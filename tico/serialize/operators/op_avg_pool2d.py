@@ -40,7 +40,7 @@ class AvgPool2DVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = AvgPool2dArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = AvgPool2dArgs(*node.args, **node.kwargs)
         input = args.input
         kernel_size = args.kernel_size
         stride = args.stride

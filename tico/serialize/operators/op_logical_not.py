@@ -43,7 +43,7 @@ class LogicalNotVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = LogicalNotArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = LogicalNotArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

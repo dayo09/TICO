@@ -41,7 +41,7 @@ class AddVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = AddTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = AddTensorArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

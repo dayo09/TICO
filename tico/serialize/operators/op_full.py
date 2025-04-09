@@ -37,7 +37,7 @@ class FullVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = FullArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = FullArgs(*node.args, **node.kwargs)
         size = args.size
         fill_value = args.fill_value
 

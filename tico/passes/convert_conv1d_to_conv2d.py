@@ -72,7 +72,7 @@ class ConvertConv1dToConv2d(PassBase):
 
         # conv1d(Tensor input, Tensor weight, Tensor? bias=None, SymInt[1] stride=1, SymInt[1] padding=0, SymInt[1] dilation=1, SymInt groups=1) -> Tensor
         # conv1d.padding(Tensor input, Tensor weight, Tensor? bias=None, SymInt[1] stride=1, str padding="valid", SymInt[1] dilation=1, SymInt groups=1) -> Tensor
-        args = Conv1DArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = Conv1DArgs(*node.args, **node.kwargs)
         input = args.input
         weight = args.weight
         bias = args.bias

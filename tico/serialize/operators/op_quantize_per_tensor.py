@@ -40,7 +40,7 @@ class QuantizePerTensorDefaultVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = QuantizePerTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = QuantizePerTensorArgs(*node.args, **node.kwargs)
         tensor = args.tensor
         scale = args.scale
         zero_p = args.zero_p

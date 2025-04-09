@@ -43,7 +43,7 @@ class LogicalAndVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = LogicalAndArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = LogicalAndArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

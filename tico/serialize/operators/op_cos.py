@@ -38,7 +38,7 @@ class CosVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = CosArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = CosArgs(*node.args, **node.kwargs)
         input = args.input
 
         op_index = get_op_index(

@@ -42,7 +42,7 @@ class NeVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.NOT_EQUAL, self._op_codes
         )
 
-        args = NeTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = NeTensorArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

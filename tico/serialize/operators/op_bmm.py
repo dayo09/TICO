@@ -38,7 +38,7 @@ class BatchMatmulVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = BmmArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = BmmArgs(*node.args, **node.kwargs)
         input = args.input
         mat2 = args.mat2
 

@@ -41,7 +41,7 @@ def _annotate_mul(
     if quant_utils.is_annotated(node):
         return
 
-    args = MulTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+    args = MulTensorArgs(*node.args, **node.kwargs)
     input = args.input
     other = args.other
 

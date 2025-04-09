@@ -103,7 +103,7 @@ class LegalizePreDefinedLayoutOperators(PassBase):
 
         # conv2d            (Tensor input, Tensor weight, Tensor? bias=None, SymInt[2] stride=1, SymInt[2] padding=0, SymInt[2] dilation=1, SymInt groups=1) -> Tensor
         # conv2d.padding    (Tensor input, Tensor weight, Tensor? bias=None, SymInt[2] stride=1, str padding="valid", SymInt[2] dilation=1, SymInt groups=1) -> Tensor
-        args = Conv2DArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = Conv2DArgs(*node.args, **node.kwargs)
         input = args.input
         padding = args.padding
         groups = args.groups
@@ -196,7 +196,7 @@ class LegalizePreDefinedLayoutOperators(PassBase):
         graph = graph_module.graph
 
         # instance_norm(Tensor input, Tensor? weight, Tensor? bias, Tensor? running_mean, Tensor? running_var, bool use_input_stats, float momentum, float eps, bool cudnn_enabled) -> Tensor
-        args = InstanceNormArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = InstanceNormArgs(*node.args, **node.kwargs)
         input = args.input
         weight = args.weight
         bias = args.bias
@@ -256,7 +256,7 @@ class LegalizePreDefinedLayoutOperators(PassBase):
         graph = graph_module.graph
 
         # max_pool2d_with_indices(Tensor self, int[2] kernel_size, int[2] stride=[], int[2] padding=0, int[2] dilation=1, bool ceil_mode=False) -> (Tensor, Tensor)
-        args = MaxPool2dWithIndicesArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = MaxPool2dWithIndicesArgs(*node.args, **node.kwargs)
         input_ = args.input
         kernel_size = args.kernel_size
         stride = args.stride
@@ -308,7 +308,7 @@ class LegalizePreDefinedLayoutOperators(PassBase):
         graph = graph_module.graph
 
         # avg_pool2d(Tensor self, int[2] kernel_size, int[2] stride=[], int[2] padding=0, bool ceil_mode=False, bool count_include_pad=True, int? divisor_override=None) -> (Tensor)
-        args = AvgPool2dArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = AvgPool2dArgs(*node.args, **node.kwargs)
         input_ = args.input
         kernel_size = args.kernel_size
         stride = args.stride

@@ -68,7 +68,7 @@ class ConvertClampToReLU6(Converter):
 
     def match(self, node) -> bool:
         if node.target == torch.ops.aten.clamp.default:
-            args = ClampArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+            args = ClampArgs(*node.args, **node.kwargs)
             min_val = args.min
             max_val = args.max
 
@@ -80,7 +80,7 @@ class ConvertClampToReLU6(Converter):
     def convert(self, exported_program, node):
         graph_module = exported_program.graph_module
         graph = graph_module.graph
-        args = ClampArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ClampArgs(*node.args, **node.kwargs)
         input = args.input
 
         with graph.inserting_after(node):
@@ -112,7 +112,7 @@ class ConvertDoubleClampsToReLU6(Converter):
         if not node.target == torch.ops.aten.clamp.default:
             return False
 
-        args = ClampArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ClampArgs(*node.args, **node.kwargs)
         node_prev = args.input
         min_val = args.min if args.min is not None else float("-inf")
         max_val = args.max if args.max is not None else float("inf")
@@ -133,7 +133,7 @@ class ConvertDoubleClampsToReLU6(Converter):
     def convert(self, exported_program, node):
         graph_module = exported_program.graph_module
         graph = graph_module.graph
-        args = ClampArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ClampArgs(*node.args, **node.kwargs)
 
         prev_node = args.input
         prev_args = ClampArgs(*prev_node.args, **prev_node.kwargs)  # type: ignore[arg-type]

@@ -95,7 +95,7 @@ class CopyVisitor(NodeVisitor):
 
         assert len(node.args) == 2, len(node.args)
 
-        args = CopyArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = CopyArgs(*node.args, **node.kwargs)
         dst = args.dst
         src = args.src
 

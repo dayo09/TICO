@@ -45,7 +45,7 @@ class WhereVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = WhereSelfArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = WhereSelfArgs(*node.args, **node.kwargs)
         condition = args.condition
         input = args.input
         other = args.other

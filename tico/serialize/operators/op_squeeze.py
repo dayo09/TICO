@@ -46,7 +46,7 @@ class SqueezeVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = SqueezeArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = SqueezeArgs(*node.args, **node.kwargs)
         input = args.input
         dims = args.dims
 

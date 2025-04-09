@@ -65,7 +65,7 @@ class InstanceNormVisitor(NodeVisitor):
         super().__init__(op_codes, graph)
 
     def define_node(self, node: torch.fx.Node) -> circle.Operator.OperatorT:
-        args = InstanceNormArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = InstanceNormArgs(*node.args, **node.kwargs)
 
         input = args.input
         weight = args.weight

@@ -42,7 +42,7 @@ class PReLUVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.PRELU, self._op_codes
         )
 
-        args = PReLUArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = PReLUArgs(*node.args, **node.kwargs)
         input = args.input
         weight = args.weight
 

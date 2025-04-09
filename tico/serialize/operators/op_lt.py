@@ -43,7 +43,7 @@ class LtVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = LtArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = LtArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

@@ -44,7 +44,7 @@ class PermuteVisitor(NodeVisitor):
             self._op_codes,
         )
 
-        args = PermuteArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = PermuteArgs(*node.args, **node.kwargs)
         input = args.input
         dims = args.dims
 

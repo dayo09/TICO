@@ -42,7 +42,7 @@ class SinVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.SIN, self._op_codes
         )
 
-        args = SinArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = SinArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

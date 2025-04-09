@@ -42,7 +42,7 @@ class RsqrtVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.RSQRT, self._op_codes
         )
 
-        args = RsqrtArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = RsqrtArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

@@ -106,7 +106,7 @@ class DecomposeSliceScatter(PassBase):
                 end: Optional[int] = None
                 step: int = 1
 
-            args = Args(*node.args, **node.kwargs)  # type: ignore[arg-type]
+            args = Args(*node.args, **node.kwargs)
 
             input = args.input
             src = args.src

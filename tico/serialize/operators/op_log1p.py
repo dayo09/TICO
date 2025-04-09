@@ -59,7 +59,7 @@ class Log1pVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = Log1pArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = Log1pArgs(*node.args, **node.kwargs)
         input = args.input
 
         input_shape = list(extract_shape(input))

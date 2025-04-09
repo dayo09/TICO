@@ -47,7 +47,7 @@ class CloneVisitor(NodeVisitor):
             # TODO: Support dim_order and memory_format
             pass
 
-        args = CloneArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = CloneArgs(*node.args, **node.kwargs)
         input = args.input
 
         op_index = get_op_index(

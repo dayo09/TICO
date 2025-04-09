@@ -43,7 +43,7 @@ class ReciprocalVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.DIV, self._op_codes
         )
 
-        args = ReciprocalArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ReciprocalArgs(*node.args, **node.kwargs)
         input = args.input
 
         input_tensor = torch.tensor(1, dtype=extract_torch_dtype(input))

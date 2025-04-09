@@ -41,7 +41,7 @@ class ArangeStartStepVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = ArangeStartStepArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ArangeStartStepArgs(*node.args, **node.kwargs)
         start = args.start
         end = args.end
         step = args.step

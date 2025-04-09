@@ -40,7 +40,7 @@ class RepeatVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = RepeatArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = RepeatArgs(*node.args, **node.kwargs)
         input = args.input
         repeats = args.repeats
 

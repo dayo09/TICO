@@ -105,7 +105,7 @@ class DepthwiseConv2dVisitor(NodeVisitor):
 
     def define_node(self, node: torch.fx.Node) -> circle.Operator.OperatorT:
         # Let's get Conv2dArgs because torch Conv2D with group == input_channel maps to CircleDepthwiseConv2D
-        args = Conv2DArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = Conv2DArgs(*node.args, **node.kwargs)
         input_ = args.input
         weight = args.weight
         bias = args.bias

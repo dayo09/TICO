@@ -40,7 +40,7 @@ class DequantizePerTensorDefaultVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = DequantizePerTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = DequantizePerTensorArgs(*node.args, **node.kwargs)
         input = args.input
         input_tensor: circle.Tensor.TensorT = self.graph.get_tensor(input)
 

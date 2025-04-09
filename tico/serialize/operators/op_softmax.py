@@ -70,7 +70,7 @@ class SoftMaxVisitor(NodeVisitor):
         """
         if node.target == torch.ops.aten._softmax.default:
             # aten._softmax
-            args = SoftmaxArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+            args = SoftmaxArgs(*node.args, **node.kwargs)
             half_to_float: bool = args.half_to_float
             if half_to_float:
                 raise NotYetSupportedError(

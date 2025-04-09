@@ -42,7 +42,7 @@ class MeanVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.MEAN, self._op_codes
         )
 
-        args = MeanDimArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = MeanDimArgs(*node.args, **node.kwargs)
         input = args.input
         dim = args.dim
         keep_dims = args.keep_dims

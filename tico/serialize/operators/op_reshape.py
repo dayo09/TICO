@@ -46,7 +46,7 @@ class ReshapeVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.RESHAPE,
             self._op_codes,
         )
-        args = ReshapeArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ReshapeArgs(*node.args, **node.kwargs)
         input = args.input
         size = args.size
 

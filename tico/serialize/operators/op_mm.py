@@ -159,7 +159,7 @@ class MatmulDefaultVisitor(NodeVisitor):
         Thus, convert FC only if tranpose can be folded.
         TODO set prior_latency outside
         """
-        args = MatmulArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = MatmulArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

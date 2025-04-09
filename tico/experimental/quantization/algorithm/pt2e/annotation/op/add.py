@@ -41,7 +41,7 @@ def _annotate_add(
     if quant_utils.is_annotated(node):
         return
 
-    args = AddTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+    args = AddTensorArgs(*node.args, **node.kwargs)
     input_ = args.input
     other = args.other
 

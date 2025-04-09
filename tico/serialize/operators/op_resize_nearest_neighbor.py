@@ -42,7 +42,7 @@ class ResizeNearestNeighborVisitor(NodeVisitor):
     ) -> circle.Operator.OperatorT:
         # Only consider `torch.nn.functional.interpolate(x, scale_factor=2.0, mode='nearest')` case.
         # TODO Support generic algorithm
-        args = ResizeNearestNeighborArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ResizeNearestNeighborArgs(*node.args, **node.kwargs)
         input = args.input
         size = args.size
 

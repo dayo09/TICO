@@ -39,7 +39,7 @@ class ConstantPadNdVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = ConstantPadNdArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ConstantPadNdArgs(*node.args, **node.kwargs)
         input_ = args.input
         pad = args.pad
         val = args.value

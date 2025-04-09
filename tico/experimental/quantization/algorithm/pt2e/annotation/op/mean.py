@@ -41,7 +41,7 @@ def _annotate_mean(
     if quant_utils.is_annotated(node):
         return
 
-    args = MeanDimArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+    args = MeanDimArgs(*node.args, **node.kwargs)
     input = args.input
 
     input_act_qspec = quant_utils.get_input_act_qspec(quantization_config)

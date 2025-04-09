@@ -46,7 +46,7 @@ class UnsqueezeVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.EXPAND_DIMS, self._op_codes
         )
 
-        args = UnSqueezeArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = UnSqueezeArgs(*node.args, **node.kwargs)
         input = args.input
         dim = args.dim
 

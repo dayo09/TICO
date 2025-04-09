@@ -98,7 +98,7 @@ class Conv2dVisitor(NodeVisitor):
     def define_node(self, node: torch.fx.Node) -> circle.Operator.OperatorT:
         # conv2d(Tensor input, Tensor weight, Tensor? bias=None, SymInt[2] stride=1, SymInt[2] padding=0, SymInt[2] dilation=1, SymInt groups=1) -> Tensor
         # conv2d.padding(Tensor input, Tensor weight, Tensor? bias=None, SymInt[2] stride=1, str padding="valid", SymInt[2] dilation=1, SymInt groups=1) -> Tensor
-        args = Conv2DArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = Conv2DArgs(*node.args, **node.kwargs)
 
         input_ = args.input
         weight = args.weight

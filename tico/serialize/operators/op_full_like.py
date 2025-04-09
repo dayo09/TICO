@@ -39,7 +39,7 @@ class FullLikeVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = FullLikeArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = FullLikeArgs(*node.args, **node.kwargs)
         input = args.input
         fill_value = args.fill_value
 

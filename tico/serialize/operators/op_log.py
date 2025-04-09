@@ -42,7 +42,7 @@ class LogVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.LOG, self._op_codes
         )
 
-        args = LogArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = LogArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

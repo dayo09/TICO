@@ -51,7 +51,7 @@ class SliceCopyVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.STRIDED_SLICE, self._op_codes
         )
 
-        args = SliceArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = SliceArgs(*node.args, **node.kwargs)
         input = args.input
         dim = args.dim
         start = args.start

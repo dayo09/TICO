@@ -40,7 +40,7 @@ class ScalarTensorVisitor(NodeVisitor):
     ) -> circle.Operator.OperatorT:
         # assert False, "This pass must not be in use."
 
-        args = ScalarTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ScalarTensorArgs(*node.args, **node.kwargs)
         scalar = args.scalar
 
         # Set dtype as node dtype because `scalar_tensor` results in float even the input is int.

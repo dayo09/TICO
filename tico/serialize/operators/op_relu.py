@@ -42,7 +42,7 @@ class ReluVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.RELU, self._op_codes
         )
 
-        args = ReluArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = ReluArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

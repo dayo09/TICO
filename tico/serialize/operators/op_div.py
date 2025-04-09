@@ -38,7 +38,7 @@ class DivVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = DivTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = DivTensorArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

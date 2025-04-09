@@ -37,7 +37,7 @@ class MinimumVisitor(NodeVisitor):
         super().__init__(op_codes, graph)
 
     def define_node(self, node: torch.fx.Node) -> circle.Operator.OperatorT:
-        args = MinimumArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = MinimumArgs(*node.args, **node.kwargs)
         input = args.input
         other = args.other
 

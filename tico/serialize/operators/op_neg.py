@@ -42,7 +42,7 @@ class NegVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.NEG,
             self._op_codes,
         )
-        args = NegArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = NegArgs(*node.args, **node.kwargs)
         input = args.input
 
         inputs = [input]

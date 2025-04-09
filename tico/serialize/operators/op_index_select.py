@@ -38,7 +38,7 @@ class IndexSelectVisitor(NodeVisitor):
         super().__init__(op_codes, graph)
 
     def define_node(self, node: torch.fx.Node) -> circle.Operator.OperatorT:
-        args = IndexSelectArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = IndexSelectArgs(*node.args, **node.kwargs)
 
         input = args.input
         dim = args.dim

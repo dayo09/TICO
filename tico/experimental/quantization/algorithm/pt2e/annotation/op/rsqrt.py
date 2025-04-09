@@ -41,7 +41,7 @@ def _annotate_rsqrt(
     if quant_utils.is_annotated(node):
         return
 
-    args = RsqrtArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+    args = RsqrtArgs(*node.args, **node.kwargs)
     input = args.input
 
     input_act_qspec = quant_utils.get_input_act_qspec(quantization_config)

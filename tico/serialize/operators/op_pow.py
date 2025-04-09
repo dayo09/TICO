@@ -91,7 +91,7 @@ class PowTensorScalarVisitor(BasePowVisitor):
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
 
-        args = PowTensorScalarArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = PowTensorScalarArgs(*node.args, **node.kwargs)
         input = args.input
         exponent = args.exponent
 
@@ -120,7 +120,7 @@ class PowTensorTensorVisitor(BasePowVisitor):
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
 
-        args = PowTensorTensorArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = PowTensorTensorArgs(*node.args, **node.kwargs)
         input = args.input
         exponent = args.exponent  # type: ignore[arg-type]
 

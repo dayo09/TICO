@@ -41,7 +41,7 @@ class DequantizePerChannelDefaultVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        args = DequantizePerChannelArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        args = DequantizePerChannelArgs(*node.args, **node.kwargs)
         input = args.input
         scales = args.scales
         zero_points = args.zero_points
