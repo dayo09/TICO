@@ -42,7 +42,7 @@ class InterpolateThreeTimes(torch.nn.Module):
 
 @tag.skip_if(
     not HAS_TORCH_OVER_28_DEV,
-    reason="This case is supported from torch 2.8.0.dev, yet.",
+    reason="The case isn't supported yet. It will be supported from torch 2.8.0.dev",
 )
 class InterpolateOnePointFive(torch.nn.Module):
     def __init__(self):

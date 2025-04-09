@@ -218,7 +218,10 @@ class LowerToResizeNearestNeighbor(PassBase):
             if not node.op == "call_function":
                 continue
 
-            if node.target not in [torch.ops.aten.index.Tensor, torch.ops.aten.upsample_nearest2d.vec]:
+            if node.target not in [
+                torch.ops.aten.index.Tensor,
+                torch.ops.aten.upsample_nearest2d.vec,
+            ]:
                 continue
 
             resize_nearest_neighbor = None
