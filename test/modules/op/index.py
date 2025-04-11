@@ -107,7 +107,7 @@ class IndexTensorAxis0And1(torch.nn.Module):
         return (torch.randn(5, 4),)
 
 
-class IndexTensorAxis0And12(torch.nn.Module):
+class IndexTensorWithSlice(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
