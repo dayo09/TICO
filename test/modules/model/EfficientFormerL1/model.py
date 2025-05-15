@@ -2,7 +2,7 @@ import timm
 import torch
 
 
-class EfficientFormer(torch.nn.Module):
+class EfficientFormerL1(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.model: timm.models.efficientformer.EfficientFormer = (
