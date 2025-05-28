@@ -16,8 +16,8 @@ import os
 import subprocess
 from functools import wraps
 from pathlib import Path
-from typing import Any, List, TYPE_CHECKING
 from types import NoneType
+from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy as np
@@ -196,7 +196,7 @@ def validate_result(
 ):
     # trim None outputs from torch_result
     torch_result = [res for res in torch_result if res is not None]
-    
+
     np.testing.assert_equal(
         actual=len(torch_result),
         desired=len(circle_result),
