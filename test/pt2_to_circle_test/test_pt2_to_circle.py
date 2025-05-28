@@ -16,7 +16,6 @@ import os
 import subprocess
 from functools import wraps
 from pathlib import Path
-from types import NoneType
 from typing import Any, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -189,7 +188,7 @@ def infer_circle(
 
 @print_name_on_exception
 def validate_result(
-    torch_result: List[torch.Tensor | int | float | NoneType],
+    torch_result: List[torch.Tensor | int | float | None],
     circle_result: List[np.ndarray],
     rtol: float = 1e-5,
     atol: float = 1e-5,
