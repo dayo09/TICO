@@ -192,8 +192,8 @@ def build_circle(edge_program: ExportedProgram) -> bytes:
     for user_output in edge_program.graph_signature.user_outputs:
         if user_output == None:
             logger.debug(f"Ignore 'None' output")
-            continue    
-        
+            continue
+
         graph.add_output(user_output)
         logger.debug(f"Registered output: {user_output}")
 
