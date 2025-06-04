@@ -36,13 +36,12 @@ class AvgPool2DVisitor(NodeVisitor):
     """
     This class defines how to serialize AvgPool2D operation into Circle IR.
 
-    Torch                           | Circle
+    Torch                                           | Circle
 
-    count_include_pad: True/False   | (count_include_pad): Always False
-    (padding): Always "valid"       | padding: "valid"/"same"
+    count_include_pad: True/False                   | (count_include_pad): Always False
+    padding: number (could be valid, same, or etc)  | padding: "valid"/"same"
 
     * Circle's avgpool2d has no option for count_include_pad, so we always set it as False.
-    * Torch's avgpool2d always uses "valid" padding mode.
     """
 
     target: List[torch._ops.OpOverload] = [torch.ops.circle_custom.avgpool2d]
