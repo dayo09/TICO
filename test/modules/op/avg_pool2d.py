@@ -100,7 +100,7 @@ class AvgPoolNonSquareWindow(torch.nn.Module):
         return (torch.randn(2, 4, 8, 16),)
 
 
-class AvgPoolWithNoCountIncludePad(torch.nn.Module):
+class AvgPoolWithSamePaddingNoCountIncludePad(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.avgpool = torch.nn.AvgPool2d(

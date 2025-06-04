@@ -62,7 +62,8 @@ class AvgPool2DVisitor(NodeVisitor):
         kernel_size = args.kernel_size
         stride = args.stride
         padding = args.padding
-
+        # TODO Update this function when supporting ceil_mode = True
+        assert args.ceil_mode is False
         output_height = math.floor(
             (input_shape[1] + padding[0] * 2 - kernel_size[0]) / stride[0] + 1
         )
@@ -70,10 +71,7 @@ class AvgPool2DVisitor(NodeVisitor):
             (input_shape[2] + padding[1] * 2 - kernel_size[1]) / stride[1] + 1
         )
 
-        if input_shape[1] == output_height and input_shape[2] == output_width:
-            return True
-        else:
-            return False
+        return input_shape[1] == output_height and input_shape[2] == output_width
 
     def define_avgpool_node(self, inputs, outputs, padding, stride, kernel_size):
         op_index = get_op_index(
