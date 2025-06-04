@@ -101,6 +101,21 @@ class AvgPool2DVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
+        """
+        PSEUDO CODE
+
+        if count_include_pad == True:
+            (Circle cannot represent count_include_pad=True in AvgPool2D. Therefore we manually add zero padding node.)
+            DEFINE zero padding node
+            DEFINE avgpool node with no padding (valid)
+        if count_include_pad == False:
+            (Lucky! Circle can represent count_include_pad=False)
+            DEFINE avgpool node with same/valid padding.
+
+            (However, it cannot represent all paddings. So, if the padding is not same or valid, we throw an error.)
+            if the paddding is neither same nor valid:
+                THROW an error.
+        """
         args = AvgPool2dArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
         input = args.input
         kernel_size = args.kernel_size
@@ -143,30 +158,33 @@ class AvgPool2DVisitor(NodeVisitor):
             self.graph.add_operator(pad_operator)
             return padded_input_tensor
 
-        if not self.has_padding(args):
-            # Don't care count_include_pad
-            result = self.define_avgpool_node(
-                [avgpool_input], [node], "VALID", stride, kernel_size
-            )
-        elif count_include_pad is True:
+        if count_include_pad is True:
             # Add padding before avgpool2d
             # Circle's avgpool2d does not support count_include_pad=True, so we need to add padding manually
-            avgpool_input = define_padding_node()
+            if self.has_padding(args):
+                avgpool_input = define_padding_node()
+
             result = self.define_avgpool_node(
                 [avgpool_input], [node], "VALID", stride, kernel_size
             )
-        elif (count_include_pad is False) and self.has_same_padding(args):
-            # Circle's avgpool2d is set as default to count_include_pad=False
-            result = self.define_avgpool_node(
-                [avgpool_input], [node], "SAME", stride, kernel_size
-            )
+        elif count_include_pad is False:
+            if not self.has_padding(args):  # valid padding
+                result = self.define_avgpool_node(
+                    [avgpool_input], [node], "VALID", stride, kernel_size
+                )
+            elif self.has_same_padding(args):
+                result = self.define_avgpool_node(
+                    [avgpool_input], [node], "SAME", stride, kernel_size
+                )
+            else:
+                # CASE: count_include_pad is False and not VALID/SAME padding
+                #
+                # Implement this when it's needed.
+                # If needed, may it help: the idea of ratio masking in https://github.com/Samsung/TICO/pull/119
+                raise NotYetSupportedError(
+                    f"Padding({padding}) with count_include_pad({count_include_pad}) is not supported yet."
+                )
         else:
-            # CASE: count_include_pad is False and not SAME padding
-            #
-            # Implement this when it's needed.
-            # If needed, may it help: the idea of ratio masking in https://github.com/Samsung/TICO/pull/119
-            raise NotYetSupportedError(
-                f"Padding({padding}) with count_include_pad({count_include_pad}) is not supported yet."
-            )
+            raise RuntimeError("Cannot reach here")
 
         return result
