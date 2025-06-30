@@ -287,7 +287,7 @@ def convert(
     strict: bool = True,
     config: CompileConfigBase = get_default_config(),
 ) -> CircleModel:
-    if mod.training:
+    if hasattr(mod, 'training') and mod.training:
         logger = logging.getLogger(__name__)
         logger.fatal(
             "Your model is in TRAINING MODE. PLEASE CHECK IF YOU FORGOT `model.eval()`."
