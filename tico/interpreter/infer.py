@@ -21,6 +21,8 @@ from circle_schema import circle
 from tico.interpreter.interpreter import Interpreter
 from tico.serialize.circle_mapping import np_dtype_from_circle_dtype, to_circle_dtype
 
+from tico.utils.installed_packages import is_dynamic_cache_available
+
 
 def preprocess_inputs(inputs: Any):
     """
@@ -45,15 +47,42 @@ def preprocess_inputs(inputs: Any):
     return tuple(l)
 
 
+def flatten_and_convert(inputs: Any) -> tuple:
+    result = []
+    for item in inputs:
+        if item is None:
+            continue
+
+        # 1. recursion on list and tuple
+        if isinstance(item, (list, tuple)):
+            result.extend(flatten_and_convert(item))
+            continue
+
+        # 2. handle DynamicCache
+        if is_dynamic_cache_available():
+            from transformers.cache_utils import DynamicCache
+
+            if isinstance(item, DynamicCache):
+                num_layers = len(item.key_cache)
+                half = num_layers // 2
+
+                # Extends caches (Order: key_out → key_in → value_out → value_in)
+                result.extend(item.key_cache[:half])  # key_out
+                result.extend(item.key_cache[half:])  # key_in
+                result.extend(item.value_cache[:half])  # value_out
+                result.extend(item.value_cache[half:])  # value_in
+                continue
+
+        # 3. Convert to tensors
+        result.append(item if isinstance(item, torch.Tensor) else torch.tensor(item))
+
+    return tuple(result)
+
+
 def infer(circle_binary: bytes, *args: Any, **kwargs: Any) -> Any:
     # When converting a model, it is assumed that the order of keyword arguments is maintained.
-    user_inputs = args + tuple(kwargs.values())
-    user_inputs = preprocess_inputs(user_inputs)
-    # Cast them to torch.Tensor to make it simple.
-    user_inputs = tuple(
-        torch.tensor(user_input) if type(user_input) != torch.Tensor else user_input
-        for user_input in user_inputs
-    )
+    raw_inputs = args + tuple(kwargs.values())
+    user_inputs = flatten_and_convert(raw_inputs)
 
     # Get input spec from circle binary.
     model = circle.Model.Model.GetRootAsModel(circle_binary, 0)
