@@ -48,7 +48,7 @@ def preprocess_inputs(inputs: Any):
 
 
 def flatten_and_convert(inputs: Any) -> tuple:
-    result = []
+    result = [] # type: ignore[var-annotated]
     for item in inputs:
         if item is None:
             continue
