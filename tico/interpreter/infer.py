@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, Sequence
 
 import numpy as np
 import torch
@@ -20,34 +20,10 @@ from circle_schema import circle
 
 from tico.interpreter.interpreter import Interpreter
 from tico.serialize.circle_mapping import np_dtype_from_circle_dtype, to_circle_dtype
-
 from tico.utils.installed_packages import is_dynamic_cache_available
 
 
-def preprocess_inputs(inputs: Any):
-    """
-    Preprocess user inputs for circle inference.
-
-    1. None inputs are ignored.
-    2. A list/tuple input is flatten when a torch module is exported.
-      e.g. inputs = (torch.Tensor, [2,3,4]) -> inputs = (torch.Tensor, 2, 3, 4)
-    """
-    l = []
-    for value in inputs:
-        if value == None:
-            continue
-        if isinstance(value, (tuple, list)):
-            for val in value:
-                l.append(val)
-        else:
-            l.append(value)
-    # Check if it is a list of a list.
-    if any(isinstance(item, (tuple, list)) for item in l):
-        l = preprocess_inputs(l)
-    return tuple(l)
-
-
-def flatten_and_convert(inputs: Any) -> tuple:
+def flatten_and_convert(inputs: Sequence) -> tuple:
     result = []  # type: ignore[var-annotated]
     for item in inputs:
         if item is None:
