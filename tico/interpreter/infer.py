@@ -63,14 +63,15 @@ def flatten_and_convert(inputs: Any) -> tuple:
             from transformers.cache_utils import DynamicCache
 
             if isinstance(item, DynamicCache):
-                num_layers = len(item.key_cache)
-                half = num_layers // 2
-
-                # Extends caches (Order: key_out → key_in → value_out → value_in)
-                result.extend(item.key_cache[:half])  # key_out
-                result.extend(item.key_cache[half:])  # key_in
-                result.extend(item.value_cache[:half])  # value_out
-                result.extend(item.value_cache[half:])  # value_in
+                # NOTE The tensor order is: key_in → key_out → value_in → value_out
+                #
+                # Refer to https://github.com/huggingface/transformers/blob/3457e8e73e4f5532cc69059682b1ba4484d7e7e8/src/transformers/cache_utils.py#L557
+                # ```py
+                # self.key_cache[layer_idx] = torch.cat([self.key_cache[layer_idx], key_states], dim=-2)
+                # self.value_cache[layer_idx] = torch.cat([self.value_cache[layer_idx], value_states], dim=-2)
+                # ```
+                result.extend(item.key_cache)
+                result.extend(item.value_cache)
                 continue
 
         # 3. Convert to tensors
