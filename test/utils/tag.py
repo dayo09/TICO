@@ -85,6 +85,5 @@ def use_onert(orig_class):
     return orig_class
 
 
-
 def is_tagged(cls, tag: str):
     return hasattr(cls, f"__tag_{tag}")
