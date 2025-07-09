@@ -52,6 +52,7 @@ class LegalizeCausalMaskValue(PassBase):
         graph_module = exported_program.graph_module
         graph = graph_module.graph
         modified = False
+
         for node in graph.nodes:
             if not is_target_node(node, ops.aten.add):
                 continue
@@ -60,20 +61,28 @@ class LegalizeCausalMaskValue(PassBase):
             input = args.input
             other = args.other
 
-            if (
-                isinstance(input, torch.fx.Node)
-                and input.name
-                in exported_program.graph_signature.lifted_tensor_constants
-            ):
+            def is_lifted_const_node(n: torch.fx.Node):
+                if not isinstance(n, torch.fx.Node):
+                    return False
+
+                is_lifted_tensor = (
+                    n.name in exported_program.graph_signature.lifted_tensor_constants
+                )
+                is_lifted_input_tensor = (
+                    n.name
+                    in exported_program.graph_signature.inputs_to_lifted_tensor_constants
+                )
+
+                return is_lifted_tensor or is_lifted_input_tensor
+
+            if is_lifted_const_node(input):
                 mask_node = input
-            elif (
-                isinstance(other, torch.fx.Node)
-                and other.name
-                in exported_program.graph_signature.lifted_tensor_constants
-            ):
+            elif is_lifted_const_node(other):
                 mask_node = other
             else:
                 continue
+
+            assert isinstance(mask_node, torch.fx.Node)
 
             mask_node_name = (
                 exported_program.graph_signature.inputs_to_lifted_tensor_constants[
