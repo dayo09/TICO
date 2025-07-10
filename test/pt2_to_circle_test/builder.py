@@ -18,6 +18,7 @@ import os
 import unittest
 from copy import deepcopy
 from pathlib import Path
+from typing import Optional
 
 import torch
 
@@ -32,6 +33,7 @@ from test.pt2_to_circle_test.test_pt2_to_circle import (
 )
 from test.utils.base_builders import TestDictBuilderBase, TestRunnerBase
 from test.utils.tag import is_tagged
+from tico.config.base import CompileConfigBase
 
 
 class NNModuleTest(TestRunnerBase):
@@ -96,10 +98,10 @@ class NNModuleTest(TestRunnerBase):
             assert hasattr(self.nnmodule, "get_dynamic_shapes")
             dynamic_shapes = self.nnmodule.get_dynamic_shapes()  # type: ignore[operator]
 
-        get_compile_config = getattr(self.nnmodule, "get_compile_config") or (
-            lambda: None
-        )
-        compile_config = get_compile_config()
+        compile_config: Optional[CompileConfigBase] = None
+        if hasattr(self.nnmodule, "get_compile_config"):
+            get_compile_config = getattr(self.nnmodule, "get_compile_config")
+            compile_config = get_compile_config()
 
         test_prefix = self.test_dir / self.test_name.replace(
             "test.modules.", ""
