@@ -182,7 +182,7 @@ def check_training_ops(exported_program: ExportedProgram):
 
 def convert_exported_module_to_circle(
     exported_program: ExportedProgram,
-    config: Optional[CompileConfigBase],
+    config: Optional[CompileConfigBase] = None,
 ) -> bytes:
     if not config:
         config = get_default_config()
