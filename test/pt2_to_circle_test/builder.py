@@ -91,7 +91,6 @@ class NNModuleTest(TestRunnerBase):
         without_pt2=False,
         dynamic: bool = False,
         without_inference=False,
-        with_golden=False,
     ):
         dynamic_shapes = None
         if dynamic:

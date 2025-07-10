@@ -98,8 +98,8 @@ def convert_nnmodule_to_circle(
     nnmodule: torch.nn.Module,
     example_inputs: tuple,
     circle_model_path: str,
-    dynamic_shapes: Optional[dict],
-    config: Optional[CompileConfigBase],
+    dynamic_shapes: Optional[dict] = None,
+    config: Optional[CompileConfigBase] = None,
 ):
     with torch.no_grad():
         _args, _kwargs = helper.get_args_kwargs(example_inputs)
