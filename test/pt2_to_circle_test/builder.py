@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Optional
 
 import torch
+from tico.config.base import CompileConfigBase
 
 from test.pt2_to_circle_test.test_pt2_to_circle import (
     convert_nnmodule_to_circle,
@@ -33,7 +34,6 @@ from test.pt2_to_circle_test.test_pt2_to_circle import (
 )
 from test.utils.base_builders import TestDictBuilderBase, TestRunnerBase
 from test.utils.tag import is_tagged
-from tico.config.base import CompileConfigBase
 
 
 class NNModuleTest(TestRunnerBase):
