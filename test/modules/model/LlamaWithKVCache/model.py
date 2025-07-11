@@ -19,8 +19,9 @@ from transformers.cache_utils import DynamicCache
 
 from test.utils.tag import skip
 
+
 # TODO: Enable when LLAMA_ATTENTION is supported by onert.
-@skip(reason="LLAMA_ATTENTION is not supported yet.")
+@skip(reason="CIRCLE::LLAMA_ATTENTION operation is not supported yet.")
 class LlamaWithKVCache(torch.nn.Module):
     def __init__(self):
         super().__init__()
