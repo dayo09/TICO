@@ -221,11 +221,18 @@ def validate_result(
             atol=atol,
             err_msg=f"Value mismatches.\nexpected result: {expected_res}\ncircle result: {circle_res}",
         )
+
         if isinstance(expected_res, torch.Tensor):
-            assert expected_res.dtype == numpy_dtype_to_torch_dtype(
-                circle_res.dtype
-            ), f"Type mismatches.\nexpected result: {expected_res.dtype}\ncircle result: {numpy_dtype_to_torch_dtype(circle_res.dtype)}"
+            expected_dtype = expected_res.dtype
+            result_dtype = numpy_dtype_to_torch_dtype(circle_res.dtype)
+            assert (
+                expected_dtype == result_dtype
+            ), f"Type mismatches.\nexpected result: {expected_dtype}\ncircle result: {result_dtype}"
         elif isinstance(expected_res, (int, float)):
-            assert type(expected_res) == type(
-                torch.from_numpy(circle_res).item()
-            ), f"Type mismatches.\nexpected result: {type(expected_res)}\ncircle result: {circle_res.dtype}"
+            expected_dtype = type(expected_res)
+            result_dtype = type(circle_res.item())
+            assert (
+                expected_dtype == result_dtype
+            ), f"Type mismatches.\nexpected result: {expected_dtype}\ncircle result: {result_dtype}"
+        else:
+            raise TypeError("Expected result must be a tensor or scalar value.")
