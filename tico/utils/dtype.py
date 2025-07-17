@@ -16,5 +16,5 @@ NUMPY_TO_TORCH_DTYPE_DICT = {
 }
 
 
-def numpy_dtype_to_torch_dtype(np_dtype):
-    return NUMPY_TO_TORCH_DTYPE_DICT[np.dtype(np_dtype)]
+def numpy_dtype_to_torch_dtype(np_dtype: np.dtype) -> torch.dtype:
+    return NUMPY_TO_TORCH_DTYPE_DICT[np_dtype]
