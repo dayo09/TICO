@@ -151,15 +151,21 @@ class CircleSubgraph(circle.SubGraph.SubGraphT):
         self.name_to_node[tensor.name] = node
         assert node.meta.get("val") is not None
         tensor.type = extract_circle_dtype(node)
-        tensor.shape = list(extract_shape(node))
 
+        shape = list(extract_shape(node))
         # Handle dynamic shape
-        if any(isinstance(s, torch.SymInt) for s in tensor.shape):
-            tensor.shapeSignature = tensor.shape.copy()
-            for idx, s in enumerate(tensor.shape):
+        if any(isinstance(s, torch.SymInt) for s in shape):
+            shapeSignature = shape.copy()
+            for idx, s in enumerate(shape):
                 if isinstance(s, torch.SymInt):
-                    tensor.shape[idx] = 1
-                    tensor.shapeSignature[idx] = -1
+                    shape[idx] = 1
+                    shapeSignature[idx] = -1
+
+        tensor.shape = shape
+        tensor.shapeSignature = shapeSignature
+
+        assert (isinstance(s, int) for s in tensor.shape)
+        assert (isinstance(s, int) for s in tensor.shapeSignature)
 
         if QPARAM_KEY in node.meta:
             tensor.quantization = to_circle_qparam(node.meta[QPARAM_KEY])
@@ -207,7 +213,7 @@ class CircleSubgraph(circle.SubGraph.SubGraphT):
     def add_tensor_from_scratch(
         self,
         prefix: str,
-        shape: List[int],
+        shape: List[int | torch.SymInt],
         dtype: int,
         qparam: Optional[QuantParam] = None,
         source_node: Optional[torch.fx.Node] = None,
