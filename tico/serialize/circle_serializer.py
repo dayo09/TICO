@@ -18,12 +18,7 @@ from typing import Dict
 import flatbuffers
 import torch
 from circle_schema import circle
-from torch.export.exported_program import (
-    ConstantArgument,
-    ExportedProgram,
-    InputKind,
-    TensorArgument,
-)
+from torch.export.exported_program import ConstantArgument, ExportedProgram, InputKind
 
 from tico.serialize.circle_mapping import to_circle_dtype
 from tico.serialize.operators import *
@@ -193,7 +188,7 @@ def build_circle(edge_program: ExportedProgram) -> bytes:
     logger.debug("---------------Register outputs--------------")
     for user_output in edge_program.graph_signature.user_outputs:
         if user_output == None:
-            logger.debug(f"Ignore 'None' output")
+            logger.debug("Ignore 'None' output")
             continue
 
         graph.add_output(user_output)
