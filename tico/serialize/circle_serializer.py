@@ -218,6 +218,19 @@ def build_circle(edge_program: ExportedProgram) -> bytes:
             graph.add_operator(circle_op)
             logger.debug(f"call_function: {node.name} ({opcode}) Op exported.")
 
+    # Handle dynamic shape
+    for tensor in graph.tensors:
+        if any(isinstance(s, torch.SymInt) for s in tensor.shape):
+            tensor.shapeSignature = tensor.shape.copy()
+            for idx, s in enumerate(tensor.shape):
+                if isinstance(s, torch.SymInt):
+                    tensor.shape[idx] = 1
+                    tensor.shapeSignature[idx] = -1
+
+        assert (
+            isinstance(s, int) for s in tensor.shape
+        ), "All elements in shape should be int"
+
     # Register subgraph
     finalise_tensor_names(graph)
     model.subgraphs.append(graph)
