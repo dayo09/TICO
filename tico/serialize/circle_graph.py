@@ -153,6 +153,8 @@ class CircleSubgraph(circle.SubGraph.SubGraphT):
         tensor.type = extract_circle_dtype(node)
 
         shape = list(extract_shape(node))
+        shapeSignature = None
+
         # Handle dynamic shape
         if any(isinstance(s, torch.SymInt) for s in shape):
             shapeSignature = shape.copy()
@@ -234,7 +236,7 @@ class CircleSubgraph(circle.SubGraph.SubGraphT):
         ----------
         prefix : str
             A name prefix used to generate a unique tensor name.
-        shape : List[int]
+        shape : List[int | torch.SymInt]
             The shape of the tensor.
         dtype : int
             The Circle-compatible dtype of the tensor. Use `to_circle_dtype()` to convert.
