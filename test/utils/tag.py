@@ -12,95 +12,113 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any, Dict, Type
+
+
+class TestTag:
+    """Central registry for managing test tag"""
+
+    _registry: Dict[Type, Dict[str, Any]] = {}
+
+    @classmethod
+    def add(cls, test_class: Type, tag_key: str, tag_value: Any = None) -> None:
+        """Add test tag object to a class
+
+        Args:
+            test_class: The test class to add tag to
+            tag_key: Name of Tag object to add
+            tag_value: Tag object to add
+        """
+        if test_class not in cls._registry:
+            cls._registry[test_class] = {}
+
+        cls._registry[test_class][tag_key] = tag_value
+
+    @classmethod
+    def has(cls, test_class: Type, tag_key: str) -> bool:
+        """Check if a class has specific tag type
+
+        Args:
+            test_class: The test class to check
+            tag_key: Type of tag object to check for
+
+        Returns:
+            bool: True if the tag exists, False otherwise
+        """
+        return test_class in cls._registry and tag_key in cls._registry[test_class]
+
+    @classmethod
+    def get(cls, test_class: Type, tag_key: str, default: Any = None) -> Any:
+        """Get tag object for a class
+
+        Args:
+            test_class: The test class to get tag from
+            tag_key: Type of tag object to retrieve
+            default: Default value to return if tag not found
+
+        Returns:
+            The tag object or default if not found
+        """
+        return cls._registry.get(test_class, {}).get(tag_key, default)
+
+
+####################################################################
+##################        Add tag here            ##################
+####################################################################
+
 
 def skip(reason):
-    def __inner_skip(orig_class):
-        setattr(orig_class, "__tag_skip", True)
-        setattr(orig_class, "__tag_skip_reason", reason)
+    """
+    Mark a test class to be skipped with a reason
 
-        def __init__(self, *args_, **kwargs_):
-            pass
+    e.g.
+      @skip(reason="Not implemented yet")
+      class MyTest(unittest.TestCase): # <-- This test will be skipped
+    """
 
-        # Ignore initialization of skipped modules
-        orig_class.__init__ = __init__
+    def decorator(cls):
+        TestTag.add(cls, "skip", {"reason": reason})
+        return cls
 
-        return orig_class
-
-    return __inner_skip
+    return decorator
 
 
 def skip_if(predicate, reason):
-    def __inner_skip(orig_class):
-        setattr(orig_class, "__tag_skip", True)
-        setattr(orig_class, "__tag_skip_reason", reason)
-
-        def __init__(self, *args_, **kwargs_):
-            pass
-
-        # Ignore initialization of skipped modules
-        orig_class.__init__ = __init__
-
-        return orig_class
-
+    """Conditionally mark a test class to be skipped with a reason"""
     if predicate:
-        return __inner_skip
-    else:
-        return lambda x: x
-
-
-def test_without_inference(orig_class):
-    setattr(orig_class, "__tag_test_without_inference", True)
-    return orig_class
-
-
-def test_without_pt2(orig_class):
-    setattr(orig_class, "__tag_test_without_pt2", True)
-    return orig_class
+        return skip(reason)
+    return lambda cls: cls
 
 
 def test_negative(expected_err):
-    def __inner_test_negative(orig_class):
-        setattr(orig_class, "__tag_test_negative", True)
-        setattr(orig_class, "__tag_expected_err", expected_err)
+    """Mark a test class as negative test case with expected error"""
 
-        return orig_class
+    def decorator(cls):
+        TestTag.add(cls, "test_negative", {"expected_err": expected_err})
+        return cls
 
-    return __inner_test_negative
-
-
-def target(orig_class):
-    setattr(orig_class, "__tag_target", True)
-    return orig_class
+    return decorator
 
 
-def use_onert(orig_class):
-    """
-    Decorator to mark a test class so that Circle models are executed
-     with the 'onert' runtime.
-
-    Useful when the default 'circle-interpreter' cannot run the model
-     under test.
-    """
-    setattr(orig_class, "__tag_use_onert", True)
-    return orig_class
+def target(cls):
+    """Mark a test class as target test case"""
+    TestTag.add(cls, "target")
+    return cls
 
 
-def init_args(*args, **kwargs):
-    def __inner_init_args(orig_class):
-        orig_init = orig_class.__init__
-        # Make copy of original __init__, so we can call it without recursion
-
-        def __init__(self, *args_, **kwargs_):
-            args_ = (*args, *args_)
-            kwargs_ = {**kwargs, **kwargs_}
-
-            orig_init(self, *args_, **kwargs_)  # Call the original __init__
-
-        orig_class.__init__ = __init__
-        return orig_class
-
-    return __inner_init_args
+def use_onert(cls):
+    """Mark a test class to use ONERT runtime"""
+    TestTag.add(cls, "use_onert")
+    return cls
 
 
-def is_tagged(cls, tag: str):
-    return hasattr(cls, f"__tag_{tag}")
+def test_without_pt2(cls):
+    """Mark a test class to not convert along pt2 during test execution"""
+    TestTag.add(cls, "test_without_pt2")
+    return cls
+
+
+def test_without_inference(cls):
+    """Mark a test class to not run inference during test execution"""
+    TestTag.add(cls, "test_without_inference")
+    return cls

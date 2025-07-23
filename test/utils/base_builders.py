@@ -16,10 +16,10 @@ import importlib
 import inspect
 import pkgutil
 from abc import abstractmethod
+from typing import Optional
 
 import torch
-
-from test.utils.tag import is_tagged
+from test.utils.tag import get_tag, has_tag, TestTag
 
 
 class TestRunnerBase:
@@ -31,12 +31,17 @@ class TestRunnerBase:
         self.nnmodule = nnmodule
         self.example_inputs = nnmodule.get_example_inputs()  # type: ignore[operator]
 
-        # Get tags
-        self.skip: bool = is_tagged(self.nnmodule, "skip")
-        self.skip_reason: str = getattr(self.nnmodule, "__tag_skip_reason", "")
-        self.test_negative: bool = is_tagged(self.nnmodule, "test_negative")
-        self.expected_err: str = getattr(self.nnmodule, "__tag_expected_err", "")
-        self.use_onert: bool = is_tagged(self.nnmodule, "use_onert")
+        skip: Optional[object] = TestTag.get(type(self.nnmodule), "skip")
+        self.skip: bool = skip is not None
+        self.skip_reason: str = skip.get("reason") if skip else ""
+
+        test_negative: Optional[object] = TestTag.get(
+            type(self.nnmodule), "test_negative"
+        )
+        self.test_negative: bool = test_negative is not None
+        self.expected_err: str = test_negative.get("reason") if test_negative else ""
+
+        self.use_onert: bool = TestTag.get(type(self.nnmodule), "use_onert", False)
 
     @abstractmethod
     def make(self):
@@ -79,16 +84,17 @@ class TestDictBuilderBase:
             )
         )
 
-        # If any of the nnmodule_classes has a tag `__tag_target`, only those nnmodule_classes will be added
+        # If any of the nnmodule_classes is marked as target, only those will be added
         target_only: bool = any(
-            hasattr(nnmodule_cls, "__tag_target") for nnmodule_cls in nnmodule_classes
+            TestTag.get(nnmodule_cls, "target", False)
+            for nnmodule_cls in nnmodule_classes
         )
 
         if target_only:
             nnmodule_classes = [
                 nnmodule_cls
                 for nnmodule_cls in nnmodule_classes
-                if hasattr(nnmodule_cls, "__tag_target")
+                if TestTag.get(nnmodule_cls, "target", False)
             ]
 
         return nnmodule_classes

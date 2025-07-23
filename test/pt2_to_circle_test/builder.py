@@ -32,7 +32,7 @@ from test.pt2_to_circle_test.test_pt2_to_circle import (
 )
 from test.utils.base_builders import TestDictBuilderBase, TestRunnerBase
 
-from test.utils.tag import is_tagged
+from test.utils.tag import TestTag
 
 
 class NNModuleTest(TestRunnerBase):
@@ -41,9 +41,11 @@ class NNModuleTest(TestRunnerBase):
         self.test_dir = Path(os.path.dirname(os.path.abspath(__file__))) / "artifacts"
 
         # Get tags
-        self.test_without_pt2: bool = is_tagged(self.nnmodule, "test_without_pt2")
-        self.test_without_inference: bool = is_tagged(
-            self.nnmodule, "test_without_inference"
+        self.test_without_pt2: bool = TestTag.get(
+            self.nnmodule, "test_without_pt2", False
+        )
+        self.test_without_inference: bool = TestTag.get(
+            self.nnmodule, "test_without_inference", False
         )
 
         # Set tolerance
