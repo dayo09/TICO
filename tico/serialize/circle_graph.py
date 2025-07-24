@@ -245,7 +245,7 @@ class CircleSubgraph(circle.SubGraph.SubGraphT):
         if source_node is not None:
             self.name_to_node[tensor.name] = source_node
         tensor.shape = shape
-        if shape_signature:
+        if shape_signature is not None:
             tensor.shapeSignature = shape_signature
 
         if qparam is not None:
