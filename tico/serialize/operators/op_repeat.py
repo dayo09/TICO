@@ -52,7 +52,7 @@ class RepeatVisitor(NodeVisitor):
                 raise InvalidArgumentError("Only support positive repeat value")
 
         tensor_shape, tensor_shape_signature = extract_circle_shape(input)
-        if tensor_shape_signature:
+        if tensor_shape_signature is not None:
             # TODO: support dynamic shape
             raise NotYetSupportedError("Repeat does not support dynamic shape yet.")
         assert len(tensor_shape) <= len(repeats)

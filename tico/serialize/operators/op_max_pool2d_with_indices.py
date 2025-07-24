@@ -94,7 +94,7 @@ class MaxPool2DWithIndicesVisitor(NodeVisitor):
             )
             input_shape, input_shape_signature = extract_circle_shape(input)
 
-            if input_shape_signature:
+            if input_shape_signature is not None:
                 # TODO: support dynamic shape
                 raise NotImplementedError("Padding with dynamic shape is not supported")
 

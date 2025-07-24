@@ -128,7 +128,7 @@ def extract_shape(node: torch.fx.Node) -> torch.Size:
     return val_shape
 
 
-def extract_circle_shape(node: torch.fx.Node):
+def extract_circle_shape(node: torch.fx.Node) -> Tuple[List[int], Optional[List[int]]]:
     return to_circle_shape(extract_shape(node))
 
 

@@ -112,7 +112,7 @@ class CopyVisitor(NodeVisitor):
         dst_shape: List[int] = dst_tensor.shape
         dst_shape_signature: List[int] = dst_tensor.shapeSignature
 
-        if dst_shape_signature:
+        if dst_shape_signature is not None:
             # TODO: support dynamic shape
             raise NotYetSupportedError("Dynamic shape is not supported yet.")
 
@@ -136,7 +136,7 @@ class CopyVisitor(NodeVisitor):
         src_shape: List[int] = src_tensor.shape
         src_shape_signature: List[int] = src_tensor.shapeSignature
 
-        if src_shape_signature:
+        if src_shape_signature is not None:
             # TODO: support dynamic shape
             raise NotYetSupportedError("Dynamic shape is not supported yet.")
 

@@ -118,7 +118,7 @@ class Conv2dVisitor(NodeVisitor):
         assert len(output_shape) == 4, len(output_shape)
         assert len(weight_shape) == 4, len(weight_shape)
 
-        if input_shape_signature:
+        if input_shape_signature is not None:
             # TODO: support dynamic shapes
             raise NotImplementedError("Dynamic shape is not supported yet")
 
