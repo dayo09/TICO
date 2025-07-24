@@ -132,7 +132,7 @@ def extract_circle_shape(node: torch.fx.Node) -> Tuple[List[int], Optional[List[
     return to_circle_shape(extract_shape(node))
 
 
-def to_circle_shape(torch_shape: torch.Size):
+def to_circle_shape(torch_shape: torch.Size) -> Tuple[List[int], Optional[List[int]]]:
     shape: List[int] = list(torch_shape)
     shapeSignature: Optional[List[int]] = None
 
