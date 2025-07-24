@@ -105,15 +105,6 @@ class AnyVisitor(NodeVisitor):
 
         dim_i32 = circle_legalize_dtype_to(dim, dtype=torch.int32)
 
-        #     dim_i32 = tuple(
-        #         circle_legalize_dtype_to(dim, dtype=torch.int32) for dim in dims
-        #     )
-        # if isinstance(dim, int):
-        #     dim_i32 = circle_legalize_dtype_to(dim, dtype=torch.int32)
-        # if isinstance(dim, tuple):
-        #     dim_i32 = tuple(circle_legalize_dtype_to(d, dtype=torch.int32) for d in dim)
-        # assert dim_i32 is not None
-
         inputs = [
             input,
             dim_i32,

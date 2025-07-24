@@ -51,7 +51,7 @@ class IndexSelectVisitor(NodeVisitor):
 
         # TODO: Revise this to be simple
         dim_i32 = circle_legalize_dtype_to(dim, dtype=torch.int32)
-        assert len(dim_i32) == 1, f"dim should be scalar: {dim_i32}"
+        assert dim_i32.dim() == 0 or len(dim_i32) == 1, f"dim should be scalar: {dim_i32}"
         dim_i32_item = dim_i32.item()
         assert isinstance(dim_i32_item, int)
 
