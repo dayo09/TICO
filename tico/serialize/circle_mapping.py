@@ -157,6 +157,10 @@ def validate_circle_shape(shape: List[int], shape_signature: Optional[List[int]]
                 "Invalid circle shape: shape_signature must not be an empty list. "
                 "For static shapes, use None instead of []."
             )
+        if len(shape) != len(shape_signature):
+            raise ValueError(
+                f"Invalid circle shape: shape and shape_signature must have same length: {shape} {shape_signature}"
+            )
         if not all(isinstance(s, int) for s in shape_signature):
             raise ValueError(
                 f"circle tensor shape_signature must be all integer values. {shape_signature}"

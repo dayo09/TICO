@@ -22,8 +22,8 @@ class CircleSerializeTest(unittest.TestCase):
         # static shape
         validate_circle_shape(shape=[1, 2, 3], shape_signature=None)
         # dynamic shape
-        validate_circle_shape(shape=[1, 2, 3], shape_signature=[1, -1, 3])
-        validate_circle_shape(shape=[1, 2, 3], shape_signature=[-1, -1, 3])
+        validate_circle_shape(shape=[1, 1, 3], shape_signature=[1, -1, 3])
+        validate_circle_shape(shape=[1, 1, 3], shape_signature=[-1, -1, 3])
 
         # Invalid dynamic shape
         with self.assertRaises(ValueError):
