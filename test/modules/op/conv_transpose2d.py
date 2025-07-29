@@ -18,7 +18,7 @@ from torch.export import Dim
 from test.utils.tag import skip, use_onert
 
 
-class SimpleConvTranspose1(torch.nn.Module):
+class SimpleConvTranspose(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.tconv2d = torch.nn.ConvTranspose2d(16, 33, 3, stride=2)
