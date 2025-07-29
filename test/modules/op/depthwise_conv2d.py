@@ -54,29 +54,6 @@ class SimpleDepthwiseConvDynamicShape(torch.nn.Module):
         return dynamic_shapes
 
 
-@tag.skip
-@tag.use_onert
-class SimpleDepthwiseConvDynamicShapeHeight(torch.nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.conv2d = torch.nn.Conv2d(
-            in_channels=8, out_channels=8, kernel_size=3, groups=8, padding=(2, 2)
-        )
-
-    def forward(self, input):
-        return self.conv2d(input)
-
-    def get_example_inputs(self):
-        return (torch.randn(4, 8, 64, 64),)
-
-    def get_dynamic_shapes(self):
-        height = Dim("H", min=1, max=128)
-        dynamic_shapes = {
-            "input": {1: height},
-        }
-        return dynamic_shapes
-
-
 class SimpleDepthwiseConvWithValidPaddingInStr(torch.nn.Module):
     def __init__(self):
         super().__init__()

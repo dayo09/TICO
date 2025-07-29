@@ -27,7 +27,7 @@ class SimpleConvTranspose(torch.nn.Module):
         return self.tconv2d(input)
 
     def get_example_inputs(self):
-        return (torch.randn(4, 16, 50, 100),)
+        return (torch.randn(1, 16, 50, 100),)
 
 
 @skip(
