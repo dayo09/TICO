@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import torch
+from packaging.version import Version
 from torch.export import Dim
 
 from test.modules.base import TestModuleBase
 
-from test.utils.tag import skip, use_onert
+from test.utils.tag import skip, skip_if, use_onert
 
 
 class SimpleAvgPool(TestModuleBase):
@@ -34,6 +34,10 @@ class SimpleAvgPool(TestModuleBase):
 
 
 @use_onert
+@skip_if(
+    Version(torch.__version__) >= Version("2.9.0.dev"),
+    reason="From torch 2.9.0.dev, dynamic shape requires more torch ir conversions related to symbolic runtime assertions",
+)
 class SimpleAvgPoolDynamicShape(TestModuleBase):
     def __init__(self):
         super().__init__()
