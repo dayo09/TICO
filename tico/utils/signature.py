@@ -1,3 +1,17 @@
+# Copyright (c) 2025 Samsung Electronics Co., Ltd. All Rights Reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import Sequence
 
 import numpy as np
@@ -9,7 +23,7 @@ from tico.utils.dtype import circle_dtype_to_torch_dtype
 from tico.utils.installed_packages import is_dynamic_cache_available
 
 
-def isinstance_DynamicCache_safe(value):
+def is_dynamic_cache_instance(value):
     if is_dynamic_cache_available():
         from transformers.cache_utils import DynamicCache
 
@@ -40,7 +54,7 @@ def flatten_and_convert_kwargs(kwargs: dict) -> dict[str, torch.Tensor]:
                 return store
 
             unpack_recursive(k, v, result)
-        elif isinstance_DynamicCache_safe(v):
+        elif is_dynamic_cache_instance(v):
             # 2. handle DynamicCache
             for idx, cache_val in enumerate(v.key_cache):
                 result[f"{k}_key_cache_{idx}"] = cache_val
