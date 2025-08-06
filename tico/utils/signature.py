@@ -230,7 +230,7 @@ class ModelInputSpec:
                         )
                     if in_shp != ref_shp:
                         raise ValueError(
-                            f"Input '{self.names[i]}' has unknown dimension {inp.size()} != expected shape({ref_shape}) / shape signature({ref_shape_sig}) "
+                            f"Input '{self.names[i]}' has wrong dimension {inp.size()} != expected shape({ref_shape}) / shape signature({ref_shape_sig}) "
                         )
             elif isinstance(inp, (int, float)):  # Scalar
                 if len(ref_shape) > 0:

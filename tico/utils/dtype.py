@@ -19,13 +19,10 @@ NUMPY_TO_TORCH_DTYPE_DICT = {
 
 CIRCLE_TO_TORCH_DTYPE_DICT = {
     circle.TensorType.TensorType.FLOAT32: torch.float32,
-    circle.TensorType.TensorType.FLOAT32: torch.float,
     circle.TensorType.TensorType.UINT8: torch.uint8,
     circle.TensorType.TensorType.INT8: torch.int8,
     circle.TensorType.TensorType.INT16: torch.int16,
-    circle.TensorType.TensorType.INT16: torch.short,
     circle.TensorType.TensorType.INT32: torch.int32,
-    circle.TensorType.TensorType.INT32: torch.int,
     circle.TensorType.TensorType.INT64: torch.int64,
     circle.TensorType.TensorType.BOOL: torch.bool,
 }

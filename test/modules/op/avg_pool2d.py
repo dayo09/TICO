@@ -34,11 +34,32 @@ class SimpleAvgPool(TestModuleBase):
 
 
 @use_onert
+class SimpleAvgPoolDynamicShape(TestModuleBase):
+    def __init__(self):
+        super().__init__()
+        self.avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2)
+
+    def forward(self, tensor):
+        result = self.avgpool(tensor)
+        return result
+
+    def get_example_inputs(self):
+        return (torch.randn(2, 4, 8, 16),), {}
+
+    def get_dynamic_shapes(self):
+        batch = Dim("batch", min=1, max=128)
+        dynamic_shapes = {
+            "tensor": {0: batch},
+        }
+        return dynamic_shapes
+
+
+@use_onert
 @skip_if(
     Version(torch.__version__) >= Version("2.9.0.dev"),
     reason="From torch 2.9.0.dev, dynamic shape requires more torch ir conversions related to symbolic runtime assertions",
 )
-class SimpleAvgPoolDynamicShape(TestModuleBase):
+class SimpleAvgPoolWithAddDynamicShape(TestModuleBase):
     def __init__(self):
         super().__init__()
         self.avgpool = torch.nn.AvgPool2d(kernel_size=3, stride=2)
