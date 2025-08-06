@@ -24,6 +24,7 @@ from tico.serialize.circle_graph import CircleSubgraph
 from tico.serialize.operators.hashable_opcode import OpCode
 from tico.serialize.operators.node_visitor import NodeVisitor, register_node_visitor
 from tico.serialize.operators.utils import create_builtin_operator, get_op_index
+from tico.utils.validate_args_kwargs import RMSNormCustomArgs
 
 
 @register_node_visitor
@@ -39,11 +40,10 @@ class RMSNormVisitor(NodeVisitor):
         self,
         node: torch.fx.Node,
     ) -> circle.Operator.OperatorT:
-        (
-            input,
-            weight,
-            eps,
-        ) = node.args
+        args = RMSNormCustomArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        input = args.input
+        weight = args.weight
+        eps = args.eps
 
         op_index = get_op_index(
             circle.BuiltinOperator.BuiltinOperator.RMS_NORM, self._op_codes

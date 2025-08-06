@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import torch
-from transformers import AutoModelForCausalLM
+from contextlib import contextmanager
 
+import torch
+
+from tico.utils.pytree_utils import register_dynamic_cache
+
+from transformers import AutoModelForCausalLM
 from transformers.models.llama.modeling_llama import LlamaRMSNorm
 
 from test.modules.base import TestModuleBase
@@ -26,17 +30,26 @@ def llama_rmsnorm_forward_adapter(self: LlamaRMSNorm, hidden_states: torch.Tenso
     )
 
 
-LlamaRMSNorm.forward = llama_rmsnorm_forward_adapter
+@contextmanager
+def patched_llama_rmsnorm():
+    orig = LlamaRMSNorm.forward
+    LlamaRMSNorm.forward = llama_rmsnorm_forward_adapter
+    try:
+        yield
+    finally:
+        LlamaRMSNorm.forward = orig
 
 
 class TinyLlamaWithFusedRMSNorm(TestModuleBase):
     def __init__(self):
         super().__init__()
-        self.model = AutoModelForCausalLM.from_pretrained("Maykeye/TinyLLama-v0").to(
-            "cpu"
-        )
+        with patched_llama_rmsnorm():
+            self.model = AutoModelForCausalLM.from_pretrained(
+                "Maykeye/TinyLLama-v0"
+            ).to("cpu")
         self.rtol = 1e-4
         self.atol = 1e-4
+        register_dynamic_cache()
 
     def forward(self, x):
         return self.model(x)

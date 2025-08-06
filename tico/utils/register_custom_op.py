@@ -20,7 +20,6 @@ from torch.library import custom_op, register_fake
 
 from tico.utils.mx.mx_ops import _quantize_mx
 
-
 # Note that an operator assumes input tensor has NHWC format.
 def CircleResizeNearestNeighbor():
     @custom_op("circle_custom::resize_nearest_neighbor", mutates_args=())
