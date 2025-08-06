@@ -12,32 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from contextlib import contextmanager
-
 import torch
 
+from tico.utils.patcher import patched_llama_rmsnorm
 from tico.utils.pytree_utils import register_dynamic_cache
 
 from transformers import AutoModelForCausalLM
-from transformers.models.llama.modeling_llama import LlamaRMSNorm
 
 from test.modules.base import TestModuleBase
-
-
-def llama_rmsnorm_forward_adapter(self: LlamaRMSNorm, hidden_states: torch.Tensor):
-    return torch.ops.circle_custom.rms_norm(
-        hidden_states, self.weight, self.variance_epsilon
-    )
-
-
-@contextmanager
-def patched_llama_rmsnorm():
-    orig = LlamaRMSNorm.forward
-    LlamaRMSNorm.forward = llama_rmsnorm_forward_adapter
-    try:
-        yield
-    finally:
-        LlamaRMSNorm.forward = orig
 
 
 class TinyLlamaWithFusedRMSNorm(TestModuleBase):
