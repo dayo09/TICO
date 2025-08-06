@@ -140,12 +140,19 @@ class ModelInputSpec:
         inputs = []
         args = flatten_and_convert_args(args)
         kwargs = flatten_and_convert_kwargs(kwargs)
+
         # 1. positional arguments
         for i, val in enumerate(args):
             if i >= len(self.names):
                 raise ValueError(f"Too many positional arguments ({i+1}).")
+            name = self.names[i]
+            if name in kwargs:
+                raise TypeError(
+                    f"Got multiple values for argument '{name}' (positional and keyword)."
+                )
             inputs.append(val)
-        # 2. named arguments
+
+        # 2. keyword arguments
         for idx in range(len(args), len(self.names)):
             name = self.names[idx]
             if name not in kwargs:

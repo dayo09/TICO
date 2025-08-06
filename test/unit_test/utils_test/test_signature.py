@@ -104,3 +104,16 @@ class UtilsSignatureTest(unittest.TestCase):
         )  # Too many args
         with self.assertRaises(ValueError):
             spec.bind(args, {}, check=True)
+
+    def test_bind_multiple_values_fail(self):
+        spec = ModelInputSpec(self.circle_model.circle_binary)
+        args = (
+            torch.randn(2, 3, dtype=torch.float32),  # x0
+            torch.randn(2, 3, dtype=torch.float32),  # x1
+        )
+        kwargs = {
+            "x1": torch.randn(2, 3),  # x1 !! multiple value for x1
+            "lin": torch.randn(20, 20, dtype=torch.float32),
+        }  # shape mismatch
+        with self.assertRaises(TypeError):
+            spec.bind(args, kwargs, check=True)
