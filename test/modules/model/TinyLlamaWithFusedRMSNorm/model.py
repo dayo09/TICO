@@ -15,16 +15,19 @@
 import torch
 from transformers import AutoModelForCausalLM
 
+from transformers.models.llama.modeling_llama import LlamaRMSNorm
+
 from test.modules.base import TestModuleBase
 
-from transformers.models.llama.modeling_llama import LlamaRMSNorm
 
 def llama_rmsnorm_forward_adapter(self: LlamaRMSNorm, hidden_states: torch.Tensor):
     return torch.ops.circle_custom.rms_norm(
         hidden_states, self.weight, self.variance_epsilon
     )
 
+
 LlamaRMSNorm.forward = llama_rmsnorm_forward_adapter
+
 
 class TinyLlamaWithFusedRMSNorm(TestModuleBase):
     def __init__(self):
