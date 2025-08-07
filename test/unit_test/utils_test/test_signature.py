@@ -150,16 +150,22 @@ class UtilsSignatureTest(unittest.TestCase):
                 2,
                 3,
             ),
-            (((
-                (torch.randn(
-                    2,
-                    3,
-                )),
-                torch.randn(
-                    2,
-                    2,
-                ),
-            ))),  # This tuple will be bound to x1, lin by flattening
+            (
+                (
+                    (
+                        (
+                            torch.randn(
+                                2,
+                                3,
+                            )
+                        ),
+                        torch.randn(
+                            2,
+                            2,
+                        ),
+                    )
+                )
+            ),  # This tuple will be bound to x1, lin by flattening
         )
         inputs = spec.bind(args, {}, check=True)
 
