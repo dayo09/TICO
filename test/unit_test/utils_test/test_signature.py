@@ -134,7 +134,7 @@ class UtilsSignatureTest(unittest.TestCase):
                     2,
                     2,
                 ),
-            ),  # This tuple will be bind to x1, lin by flattening
+            ),  # This tuple will be bound to x1, lin by flattening
         )
         inputs = spec.bind(args, {}, check=True)
 
