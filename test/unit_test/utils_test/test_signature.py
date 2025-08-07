@@ -142,3 +142,28 @@ class UtilsSignatureTest(unittest.TestCase):
         assert inputs[0].shape == torch.Size([2, 3])
         assert inputs[1].shape == torch.Size([2, 3])
         assert inputs[2].shape == torch.Size([2, 2])
+
+    def test_bind_multi_level_tuple(self):
+        spec = ModelInputSpec(self.circle_model.circle_binary)
+        args = (
+            torch.randn(
+                2,
+                3,
+            ),
+            (((
+                (torch.randn(
+                    2,
+                    3,
+                )),
+                torch.randn(
+                    2,
+                    2,
+                ),
+            ))),  # This tuple will be bound to x1, lin by flattening
+        )
+        inputs = spec.bind(args, {}, check=True)
+
+        assert len(inputs) == 3
+        assert inputs[0].shape == torch.Size([2, 3])
+        assert inputs[1].shape == torch.Size([2, 3])
+        assert inputs[2].shape == torch.Size([2, 2])
