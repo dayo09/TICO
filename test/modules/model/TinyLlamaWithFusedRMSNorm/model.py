@@ -14,7 +14,7 @@
 
 import torch
 
-from tico.utils.patcher import patched_llama_rmsnorm
+from tico.serialize.operators.adapters.rmsnorm import patched_llama_rmsnorm
 from tico.utils.pytree_utils import register_dynamic_cache
 
 from transformers import AutoModelForCausalLM
