@@ -191,6 +191,7 @@ class NNModuleTest(TestRunnerBase):
             validate_result(torch_result, circle_result, **self.tolerance)
 
         if dynamic_shapes:
+
             def has_symbolic_input(circle_model_path: str) -> bool:
                 ispec = ModelInputSpec.load(circle_model_path)
                 for idx, shape_sig in enumerate(ispec.shape_signatures):
