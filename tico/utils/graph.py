@@ -273,10 +273,6 @@ def create_node(
     torch.fx.Node
         The freshly inserted node with fully-populated `.meta`.
     """
-    assert isinstance(target, torch._ops.OpOverload) or (
-        target is getitem
-    ), f"Invalid target {target}"
-
     new_node = graph.call_function(target, args=args, kwargs=kwargs)
     if origin:
         assert isinstance(origin, torch.fx.Node), type(origin)
