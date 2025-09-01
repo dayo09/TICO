@@ -31,7 +31,7 @@ assert_node_targets = [
 class RemoveRedundantAssertionNodes(PassBase):
     """
     This removes redundant assertion nodes.
-    When assertion node is erased, related comparison nodes are also removed by DCE pass.
+    When assertion node is erased, related comparison nodes are also removed by graph.eliminate_dead_code().
     """
 
     def __init__(self):
