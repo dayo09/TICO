@@ -15,7 +15,9 @@
 import torch
 
 from test.modules.base import TestModuleBase
+from test.utils.tag import use_onert
 
+@use_onert
 class SimpleCond1(TestModuleBase):
     class Sin(torch.nn.Module):
         def forward(self, x):
@@ -40,6 +42,7 @@ class SimpleCond1(TestModuleBase):
     
     
 
+@use_onert
 class SimpleCond2(TestModuleBase):
     class Sin(torch.nn.Module):
         def forward(self, x, y):
@@ -61,20 +64,44 @@ class SimpleCond2(TestModuleBase):
                           operands=(x,y))
     def get_example_inputs(self):
         return (torch.randn(3, 3), torch.randn(3, 3)), {}
+    
+    
+@use_onert
+class SimpleCond3(TestModuleBase):
+    class Sin(torch.nn.Module):
+        def forward(self, x, y):
+            return torch.sin(x) + torch.sin(y)
+
+    class Cos(torch.nn.Module):
+        def forward(self, x, y):
+            return torch.cos(x) - torch.cos(y)
+
+    def __init__(self):
+        super().__init__()
+        self.sin = self.Sin()
+        self.cos = self.Cos()
+
+    def forward(self, x, y):
+        return torch.cond(x.sum() + y.sum() > 0,
+                          lambda x, y: self.sin(x, y),
+                          lambda x, y: self.cos(x, y),
+                          operands=(x,y))
+    def get_example_inputs(self):
+        return (torch.randn(3, 3), torch.randn(3, 3)), {}
 
 
-if __name__ == "__main__":
-    model = SimpleCond2()
-    x = torch.randn(3, 3)
-    y = torch.randn(3, 3)
+# if __name__ == "__main__":
+#     model = SimpleCond2()
+#     x = torch.randn(3, 3)
+#     y = torch.randn(3, 3)
 
-    # export (그래프 생성)
-    exported_model = torch.export.export(model, (x, y))
+#     # export (그래프 생성)
+#     exported_model = torch.export.export(model, (x, y))
 
-    # export된 모델 호출 테스트
-    output = exported_model.module()(x, y)
-    exported_model.graph.print_tabular()
-    print(exported_model.graph_signature.user_inputs)
-    print(exported_model.graph_signature.user_outputs)
-    print(output)
-    breakpoint()
+#     # export된 모델 호출 테스트
+#     output = exported_model.module()(x, y)
+#     exported_model.graph.print_tabular()
+#     print(exported_model.graph_signature.user_inputs)
+#     print(exported_model.graph_signature.user_outputs)
+#     print(output)
+#     breakpoint()

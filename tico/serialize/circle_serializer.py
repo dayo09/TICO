@@ -109,16 +109,12 @@ def build_circle(
         logger.debug("---------------Export operators--------------")
         visitors = get_node_visitors(op_codes, graph)
         ep_graph.print_tabular()
-        breakpoint()
         for node in ep_graph.nodes:
             if node.op != "call_function":
                 continue
 
             opcode = node.target
             if opcode == operator.getitem:
-                continue
-            if opcode == torch.ops.higher_order.cond:
-                # TODO process
                 continue
             if opcode not in visitors:
                 raise RuntimeError(f"{opcode} is not yet supported")
