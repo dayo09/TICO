@@ -49,12 +49,7 @@ class CircleIfVisitor(NodeVisitor):
         else_idx = if_args.else_graph_idx
         arguments = if_args.if_args
         
-        if len(arguments) > 1:
-            raise NotYetSupportedError("Not supported multiple input case yet. Only one input is allowed.")
-        
-        arguments = arguments[0]
-        
-        inputs = [pred, arguments]
+        inputs = [pred, *arguments]
         outputs = [node]
 
         operator = create_builtin_operator(self.graph, op_index, inputs, outputs)
