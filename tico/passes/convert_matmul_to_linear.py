@@ -155,8 +155,8 @@ class ConvertMatmulToLinear(PassBase):
          out                              out
 
 
-    enable_lhs_const: If true, also convert matmul where LHS is constant tensor. Default is False.
-    enable_rhs_const: If true, also convert matmul where RHS is constant tensor. Default is True.
+    enable_lhs_const: If true, convert matmul where LHS is constant tensor. Default is False.
+    enable_rhs_const: If true, convert matmul where RHS is constant tensor. Default is True.
     """
 
     def __init__(
