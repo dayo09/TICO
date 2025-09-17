@@ -38,7 +38,7 @@ class Converter:  # type: ignore[empty-body]
         pass
 
 
-class ConvertMatmulToLinear(Converter):
+class MatmulToLinearConverter(Converter):
     def __init__(self):
         super().__init__()
 
@@ -67,7 +67,7 @@ class ConvertMatmulToLinear(Converter):
         return fc_node
 
 
-class ConvertRhsConstMatmulToLinear(ConvertMatmulToLinear):
+class RhsConstMatmulToLinearConverter(MatmulToLinearConverter):
     def __init__(self):
         super().__init__()
 
@@ -93,7 +93,7 @@ class ConvertRhsConstMatmulToLinear(ConvertMatmulToLinear):
         return super().convert(exported_program, node)
 
 
-class ConvertLhsConstMatmulToLinear(ConvertMatmulToLinear):
+class LhsConstMatmulToLinearConverter(MatmulToLinearConverter):
     def __init__(self):
         super().__init__()
 
@@ -112,6 +112,7 @@ class ConvertLhsConstMatmulToLinear(ConvertMatmulToLinear):
                 return True
             else:
                 return False
+        return False
 
     def convert(self, exported_program, node) -> torch.fx.Node:
         return super().convert(exported_program, node)
@@ -167,9 +168,9 @@ class ConvertMatmulToLinear(PassBase):
         super().__init__()
         self.converters: List[Converter] = []
         if enable_lhs_const:
-            self.converters.append(ConvertLhsConstMatmulToLinear())
+            self.converters.append(LhsConstMatmulToLinearConverter())
         if enable_rhs_const:
-            self.converters.append(ConvertRhsConstMatmulToLinear())
+            self.converters.append(RhsConstMatmulToLinearConverter())
 
     def call(self, exported_program: ExportedProgram) -> PassResult:
         logger = logging.getLogger(__name__)
