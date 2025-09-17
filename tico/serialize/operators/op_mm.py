@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 import torch
 from circle_schema import circle
 
-from tico.serialize.circle_graph import CircleSubgraph, is_const
+from tico.serialize.circle_graph import CircleSubgraph
 from tico.serialize.operators.hashable_opcode import OpCode
 from tico.serialize.operators.node_visitor import NodeVisitor, register_node_visitor
 from tico.serialize.operators.utils import create_builtin_operator, get_op_index
@@ -28,9 +28,9 @@ from tico.utils.validate_args_kwargs import MatmulArgs
 
 
 @register_node_visitor
-class MatmulDefaultVisitor(NodeVisitor):
+class MatmulVisitor(NodeVisitor):
     """
-    Convert matmul to equavalent BatchMatMul
+    Convert matmul to Circle BatchMatMul
     """
 
     target: List[torch._ops.OpOverload] = [torch.ops.aten.mm.default]
@@ -38,28 +38,7 @@ class MatmulDefaultVisitor(NodeVisitor):
     def __init__(self, op_codes: Dict[OpCode, int], graph: CircleSubgraph):
         super().__init__(op_codes, graph)
 
-    # NOTE: Matmul is equivalent to Batch MatMul (batch=1)
-    def define_bmm_node(self, inputs, outputs) -> circle.Operator.OperatorT:
-        def set_bmm_option(operator):
-            operator.builtinOptionsType = (
-                circle.BuiltinOptions.BuiltinOptions.BatchMatMulOptions
-            )
-            option = circle.BatchMatMulOptions.BatchMatMulOptionsT()
-            option.adjointLhs, option.adjointRhs = False, False
-            option.asymmetricQuantizeInputs = False
-            operator.builtinOptions = option
-
-        op_index = get_op_index(
-            circle.BuiltinOperator.BuiltinOperator.BATCH_MATMUL, self._op_codes
-        )
-        operator = create_builtin_operator(self.graph, op_index, inputs, outputs)
-        set_bmm_option(operator)
-
-        return operator
-
-    def define_node(
-        self, node: torch.fx.Node, prior_latency=True
-    ) -> circle.Operator.OperatorT:
+    def define_node(self, node: torch.fx.Node) -> circle.Operator.OperatorT:
         args = MatmulArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
         input = args.input
         other = args.other
@@ -67,6 +46,16 @@ class MatmulDefaultVisitor(NodeVisitor):
         inputs = [input, other]
         outputs = [node]
 
-        operator = self.define_bmm_node(inputs, outputs)
+        op_index = get_op_index(
+            circle.BuiltinOperator.BuiltinOperator.BATCH_MATMUL, self._op_codes
+        )
+        operator = create_builtin_operator(self.graph, op_index, inputs, outputs)
+        operator.builtinOptionsType = (
+            circle.BuiltinOptions.BuiltinOptions.BatchMatMulOptions
+        )
+        option = circle.BatchMatMulOptions.BatchMatMulOptionsT()
+        option.adjointLhs, option.adjointRhs = False, False
+        option.asymmetricQuantizeInputs = False
+        operator.builtinOptions = option
 
         return operator
