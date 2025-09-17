@@ -38,7 +38,36 @@ class Converter:  # type: ignore[empty-body]
         pass
 
 
-class ConvertRhsConstMatmulToLinear(Converter):
+class ConvertMatmulToLinear(Converter):
+    def __init__(self):
+        super().__init__()
+
+    def convert(self, exported_program, node) -> torch.fx.Node:
+        graph_module = exported_program.graph_module
+        graph = graph_module.graph
+
+        mm_args = MatmulArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+
+        lhs = mm_args.input
+        rhs = mm_args.other
+
+        with graph.inserting_before(node):
+            transpose_node = create_node(
+                graph,
+                torch.ops.aten.permute.default,
+                args=(rhs, [1, 0]),
+            )
+            fc_node = create_node(
+                graph,
+                torch.ops.aten.linear.default,
+                args=(lhs, transpose_node),
+            )
+            node.replace_all_uses_with(fc_node, propagate_meta=True)
+
+        return fc_node
+
+
+class ConvertRhsConstMatmulToLinear(ConvertMatmulToLinear):
     def __init__(self):
         super().__init__()
 
@@ -61,31 +90,10 @@ class ConvertRhsConstMatmulToLinear(Converter):
         return False
 
     def convert(self, exported_program, node) -> torch.fx.Node:
-        graph_module = exported_program.graph_module
-        graph = graph_module.graph
-
-        mm_args = MatmulArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
-
-        lhs = mm_args.input
-        rhs = mm_args.other
-
-        with graph.inserting_before(node):
-            transpose_node = create_node(
-                graph,
-                torch.ops.aten.permute.default,
-                args=(rhs, [1, 0]),
-            )
-            fc_node = create_node(
-                graph,
-                torch.ops.aten.linear.default,
-                args=(lhs, transpose_node),
-            )
-            node.replace_all_uses_with(fc_node, propagate_meta=True)
-
-        return fc_node
+        return super().convert(exported_program, node)
 
 
-class ConvertLhsConstMatmulToLinear(Converter):
+class ConvertLhsConstMatmulToLinear(ConvertMatmulToLinear):
     def __init__(self):
         super().__init__()
 
@@ -106,28 +114,7 @@ class ConvertLhsConstMatmulToLinear(Converter):
                 return False
 
     def convert(self, exported_program, node) -> torch.fx.Node:
-        graph_module = exported_program.graph_module
-        graph = graph_module.graph
-
-        mm_args = MatmulArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
-
-        lhs = mm_args.input
-        rhs = mm_args.other
-
-        with graph.inserting_before(node):
-            transpose_node = create_node(
-                graph,
-                torch.ops.aten.permute.default,
-                args=(rhs, [1, 0]),
-            )
-            fc_node = create_node(
-                graph,
-                torch.ops.aten.linear.default,
-                args=(lhs, transpose_node),
-            )
-            node.replace_all_uses_with(fc_node, propagate_meta=True)
-
-        return fc_node
+        return super().convert(exported_program, node)
 
 
 @trace_graph_diff_on_pass
