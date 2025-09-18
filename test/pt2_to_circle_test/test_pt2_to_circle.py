@@ -212,8 +212,8 @@ def infer_circle(
 def validate_result(
     expected_result: List[torch.Tensor | int | float],
     circle_result: List[np.ndarray],
-    rtol: float = 1e-5,
-    atol: float = 1e-5,
+    rtol: float = 1e-7,
+    atol: float = 1e-7,
 ):
     np.testing.assert_equal(
         actual=len(expected_result),

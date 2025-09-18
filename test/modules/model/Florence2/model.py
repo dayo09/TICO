@@ -18,7 +18,7 @@ from PIL import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 
 from test.modules.base import TestModuleBase
-
+from test.utils.tag import use_onert
 
 class Florence2(TestModuleBase):
     def __init__(self):
@@ -39,7 +39,7 @@ class Florence2(TestModuleBase):
         return self.model(input_ids, pixel_values, attention_mask, decoder_input_ids)
 
     def get_example_inputs(self):
-        torch.manual_seed(0)
+        torch.manual_seed(1)
         seq_len = 590
 
         prompt = "<OD>"
@@ -49,8 +49,8 @@ class Florence2(TestModuleBase):
             "cpu", torch.float32
         )
 
-        input_ids = inputs["input_ids"]
-        pixel_values = inputs["pixel_values"]
+        input_ids = torch.randint(low=1, high=1000, size=[1,13], dtype=torch.int64) #inputs["input_ids"]
+        pixel_values = torch.randn([1,3,768,768], dtype=torch.float32)#inputs["pixel_values"]
         attention_mask = torch.ones(1, seq_len, dtype=torch.int64)
         max_id = int(torch.max(input_ids))
         decoder_input_ids = torch.randint(

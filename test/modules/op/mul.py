@@ -63,3 +63,14 @@ class MulWithBuiltinInt(TestModuleBase):
 
     def get_example_inputs(self):
         return (torch.ones(1).to(torch.int64), 2), {}
+
+class MulBroadcast(TestModuleBase):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        z = x * 0.3535
+        return z
+
+    def get_example_inputs(self):
+        return (torch.randn(1,12,64,590),), {}

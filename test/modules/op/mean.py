@@ -123,3 +123,15 @@ class MeanWithRedundantViewAndDtype(TestModuleBase):
     def get_example_inputs(self):
         torch.manual_seed(1)
         return (torch.randn(5, 5),), {}
+
+class MeanWithMinusDim(TestModuleBase):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        z = torch.mean(x, dim=-1, keepdim=True, dtype=torch.float32).to('cpu')
+        return z
+
+    def get_example_inputs(self):
+        torch.manual_seed(1)
+        return (torch.randn(1, 36864, 128).to('cpu'),), {}

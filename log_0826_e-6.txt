@@ -1,0 +1,535 @@
+/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/backends/__init__.py:46: UserWarning: Please use the new API settings to control TF32 behavior, such as torch.backends.cudnn.conv.fp32_precision = 'tf32' or torch.backends.cuda.matmul.fp32_precision = 'ieee'. Old settings, e.g, torch.backends.cuda.matmul.allow_tf32 = True, torch.backends.cudnn.allow_tf32 = True, allowTF32CuDNN() and allowTF32CuBLAS() will be deprecated after Pytorch 2.9. Please see https://pytorch.org/docs/main/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices (Triggered internally at /pytorch/aten/src/ATen/Context.cpp:80.)
+  self.setter(val)
+2025-09-18 15:59:01.333548: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-09-18 15:59:02.172018: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2025-09-18 15:59:05 | INFO | fairseq.tasks.text_to_speech | Please install tensorboardX: pip install tensorboardX
+/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/fairscale/experimental/nn/offload.py:19: FutureWarning: `torch.cuda.amp.custom_fwd(args...)` is deprecated. Please use `torch.amp.custom_fwd(args..., device_type='cuda')` instead.
+  return torch.cuda.amp.custom_fwd(orig_func)  # type: ignore
+/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/fairscale/experimental/nn/offload.py:30: FutureWarning: `torch.cuda.amp.custom_bwd(args...)` is deprecated. Please use `torch.amp.custom_bwd(args..., device_type='cuda')` instead.
+  return torch.cuda.amp.custom_bwd(orig_func)  # type: ignore
+2025-09-18 15:59:05 | WARNING | root | Pytorch pre-release version 2.9.0.dev20250828+cu126 - assuming intent to test it
+test.modules.op.abs.SimpleAbs (pt2_to_circle_test.test_op.test.modules.op.abs) ... ok
+test.modules.op.abs.SimpleAbsWithNone (pt2_to_circle_test.test_op.test.modules.op.abs) ... ok
+test.modules.op.add.AddWithBuffer (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.AddWithBuiltinFloat (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.AddWithBuiltinInt (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.AddWithCausalMaskFolded (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.AddWithCausalMaskLegalized (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.AddWithNonPersistentBuffer (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.ScalarAddFloat (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.ScalarAddInt (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.SimpleAdd (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.SimpleAddWithDifferentMemoryFormat (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.add.SimpleAddWithoutPt2 (pt2_to_circle_test.test_op.test.modules.op.add) ... ok
+test.modules.op.addmm.SimpleAddmmWith1DInput (pt2_to_circle_test.test_op.test.modules.op.addmm) ... ok
+test.modules.op.addmm.SimpleAddmmWith2DInput (pt2_to_circle_test.test_op.test.modules.op.addmm) ... ok
+test.modules.op.addmm.SimpleAddmmWithNanInputZeroBeta (pt2_to_circle_test.test_op.test.modules.op.addmm) ... ok
+test.modules.op.addmm.SimpleAddmmWithZeroAlpha (pt2_to_circle_test.test_op.test.modules.op.addmm) ... ok
+test.modules.op.addmm.SimpleAddmmWithZeroAlphaAndBeta (pt2_to_circle_test.test_op.test.modules.op.addmm) ... ok
+test.modules.op.addmm.SimpleAddmmWithZeroBeta (pt2_to_circle_test.test_op.test.modules.op.addmm) ... ok
+test.modules.op.alias_copy.SimpleAliasCopy (pt2_to_circle_test.test_op.test.modules.op.alias_copy) ... ok
+test.modules.op.alias_copy.SimpleAliasCopyWithConstantTensor (pt2_to_circle_test.test_op.test.modules.op.alias_copy) ... ok
+test.modules.op.any.SimpleAnyBool (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyBool2D (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyBool2DKeepDimTrue (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyFloat (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyFloat2D (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyFloat2DDim2 (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyInt (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.any.SimpleAnyIntMinus (pt2_to_circle_test.test_op.test.modules.op.any) ... ok
+test.modules.op.arange.SimpleArangeStartStepWithDifferentType (pt2_to_circle_test.test_op.test.modules.op.arange) ... ok
+test.modules.op.arange.SimpleArangeStartStepWithFloat (pt2_to_circle_test.test_op.test.modules.op.arange) ... ok
+test.modules.op.arange.SimpleArangeStartStepWithInt (pt2_to_circle_test.test_op.test.modules.op.arange) ... ok
+test.modules.op.argmax.SimpleArgMax (pt2_to_circle_test.test_op.test.modules.op.argmax) ... ok
+test.modules.op.argmax.SimpleArgMaxWithNegativeDim (pt2_to_circle_test.test_op.test.modules.op.argmax) ... ok
+test.modules.op.argmax.SimpleArgMaxWithRankThreeTensor (pt2_to_circle_test.test_op.test.modules.op.argmax) ... ok
+test.modules.op.avg_pool2d.AdaptiveAvgPool (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolFunctionalWithoutStride (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolNonSquareWindow (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolWithNoPaddingNoCountIncludePad (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolWithNoSamePaddingNoCountIncludePad (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... skipped 'Not supported yet'
+test.modules.op.avg_pool2d.AvgPoolWithPadding (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolWithPaddingKwargs (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolWithSamePadding (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolWithSamePaddingNoCountIncludePad (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.AvgPoolWithoutStride (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.SimpleAvgPool (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.avg_pool2d.SimpleAvgPoolDynamicShape (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... /home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py:231: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:206.)
+  circle_tensor = torch.from_numpy(circle_res)
+ok
+test.modules.op.avg_pool2d.SimpleAvgPoolWithAddDynamicShape (pt2_to_circle_test.test_op.test.modules.op.avg_pool2d) ... ok
+test.modules.op.bmm.SimpleBatchMatMul (pt2_to_circle_test.test_op.test.modules.op.bmm) ... ok
+test.modules.op.cat.SimpleCatDefault (pt2_to_circle_test.test_op.test.modules.op.cat) ... ok
+test.modules.op.cat.SimpleCatThreeTensors (pt2_to_circle_test.test_op.test.modules.op.cat) ... ok
+test.modules.op.cat.SimpleCatWithDim (pt2_to_circle_test.test_op.test.modules.op.cat) ... ok
+test.modules.op.clamp.ClampIntInputFloatMinMax (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.DoubleClampsFrom0to6 (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.DoubleClampsFrom0to6WithBigMax (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.SimpleClampFrom0to6Float (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.SimpleClampFrom0to6Int (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.SimpleClampMaxOnly (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.SimpleClampMinMaxBoth (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clamp.SimpleClampMinOnly (pt2_to_circle_test.test_op.test.modules.op.clamp) ... ok
+test.modules.op.clone.SimpleClone (pt2_to_circle_test.test_op.test.modules.op.clone) ... ok
+test.modules.op.clone.SimpleCloneWithMemoryFormat (pt2_to_circle_test.test_op.test.modules.op.clone) ... ok
+test.modules.op.clone.SimpleCloneWithMemoryFormatChannelsLast (pt2_to_circle_test.test_op.test.modules.op.clone) ... ok
+test.modules.op.clone.SimpleCloneWithMemoryFormatContiguous (pt2_to_circle_test.test_op.test.modules.op.clone) ... ok
+test.modules.op.constant_pad_nd.ConstantPad2d (pt2_to_circle_test.test_op.test.modules.op.constant_pad_nd) ... ok
+test.modules.op.constant_pad_nd.ConstantPad2dWith3dInput (pt2_to_circle_test.test_op.test.modules.op.constant_pad_nd) ... ok
+test.modules.op.constant_pad_nd.DifferentRightBottom (pt2_to_circle_test.test_op.test.modules.op.constant_pad_nd) ... ok
+test.modules.op.constant_pad_nd.SimpleConstantPadNd (pt2_to_circle_test.test_op.test.modules.op.constant_pad_nd) ... ok
+test.modules.op.conv1d.Conv1dNoBias (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv1d.Conv1dPaddingOne (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv1d.Conv1dPaddingSame (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv1d.Conv1dPaddingTwo (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv1d.Conv1dPaddingValid (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv1d.Conv1dPaddingZero (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv1d.DepthwiseConv1d (pt2_to_circle_test.test_op.test.modules.op.conv1d) ... ok
+test.modules.op.conv2d.ConvNonSquareKernelSamePadding (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvNonSquareKernelValidPadding (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvStirdePadding (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... FAIL
+test.modules.op.conv2d.ConvValidPaddingWithNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithDilation (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithIntPadding (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithNoStrideNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithPadding (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithSamePadding (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithSamePadding2 (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithTensorWeightAndBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.ConvWithTensorWeightNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.GroupedConv2dDifferentICAndOCWithTensorWeightBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... FAIL
+test.modules.op.conv2d.GroupedConv2dDifferentICAndOCWithTensorWeightNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... FAIL
+test.modules.op.conv2d.GroupedConv2dWithTensorWeightBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... FAIL
+test.modules.op.conv2d.GroupedConv2dWithTensorWeightNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... FAIL
+test.modules.op.conv2d.SimpleConv (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleConvDynamicShape (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleGroupedConv2d (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleGroupedConv2dWithSamePaddingInList (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleGroupedConv2dWithSamePaddingInStr (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleGroupedConv2dWithValidPaddingInList (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleGroupedConv2dWithValidPaddingInStr (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.SimpleQuantizedConv (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... ok
+test.modules.op.conv2d.TwoConvSameInput (pt2_to_circle_test.test_op.test.modules.op.conv2d) ... FAIL
+test.modules.op.conv_transpose2d.ConvTSamePad (pt2_to_circle_test.test_op.test.modules.op.conv_transpose2d) ... ok
+test.modules.op.conv_transpose2d.ConvTStride2OutPad1 (pt2_to_circle_test.test_op.test.modules.op.conv_transpose2d) ... ok
+test.modules.op.conv_transpose2d.ConvTUpsample2x (pt2_to_circle_test.test_op.test.modules.op.conv_transpose2d) ... ok
+test.modules.op.conv_transpose2d.SimpleConvTranspose (pt2_to_circle_test.test_op.test.modules.op.conv_transpose2d) ... ok
+test.modules.op.conv_transpose2d.SimpleConvTransposeDynamicShape (pt2_to_circle_test.test_op.test.modules.op.conv_transpose2d) ... skipped 'luci-interpreter does not support dynamic shape yet && onert does not support TransposeConv yet'
+test.modules.op.copy.SimpleCopy (pt2_to_circle_test.test_op.test.modules.op.copy) ... ok
+test.modules.op.copy.SimpleCopyWithBroadcastTo (pt2_to_circle_test.test_op.test.modules.op.copy) ... ok
+test.modules.op.cos.SimpleCos (pt2_to_circle_test.test_op.test.modules.op.cos) ... ok
+test.modules.op.cumsum.SimpleCumsumDim0 (pt2_to_circle_test.test_op.test.modules.op.cumsum) ... ok
+test.modules.op.cumsum.SimpleCumsumDim1 (pt2_to_circle_test.test_op.test.modules.op.cumsum) ... ok
+test.modules.op.cumsum.SimpleCumsumDim2 (pt2_to_circle_test.test_op.test.modules.op.cumsum) ... ok
+test.modules.op.cumsum.SimpleCumsumInt32 (pt2_to_circle_test.test_op.test.modules.op.cumsum) ... ok
+test.modules.op.cumsum.SimpleCumsumInt64 (pt2_to_circle_test.test_op.test.modules.op.cumsum) ... ok
+test.modules.op.depthwise_conv2d.DepthwiseConvWithTensorWeightBias (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.DepthwiseConvWithTensorWeightNoBias (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.SimpleDepthwiseConv (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.SimpleDepthwiseConvDynamicShape (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.SimpleDepthwiseConvWithSamePaddingInList (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.SimpleDepthwiseConvWithSamePaddingInStr (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.SimpleDepthwiseConvWithValidPaddingInList (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.depthwise_conv2d.SimpleDepthwiseConvWithValidPaddingInStr (pt2_to_circle_test.test_op.test.modules.op.depthwise_conv2d) ... ok
+test.modules.op.detach.SimpleDetach (pt2_to_circle_test.test_op.test.modules.op.detach) ... ok
+test.modules.op.detach.SimpleDetachConst (pt2_to_circle_test.test_op.test.modules.op.detach) ... ok
+test.modules.op.div.DivWithDifferentDtypeInputs (pt2_to_circle_test.test_op.test.modules.op.div) ... ok
+test.modules.op.div.DivWithDifferentDtypeInputs2 (pt2_to_circle_test.test_op.test.modules.op.div) ... ok
+test.modules.op.div.DivWithDifferentDtypeInputs3 (pt2_to_circle_test.test_op.test.modules.op.div) ... ok
+test.modules.op.div.SimpleDiv (pt2_to_circle_test.test_op.test.modules.op.div) ... ok
+test.modules.op.embedding.PaddedEmbedding (pt2_to_circle_test.test_op.test.modules.op.embedding) ... ok
+test.modules.op.embedding.ScaleGradEmbedding (pt2_to_circle_test.test_op.test.modules.op.embedding) ... ok
+test.modules.op.embedding.SimpleEmbedding (pt2_to_circle_test.test_op.test.modules.op.embedding) ... ok
+test.modules.op.embedding.SparseEmbedding (pt2_to_circle_test.test_op.test.modules.op.embedding) ... ok
+test.modules.op.eq.SimpleEq (pt2_to_circle_test.test_op.test.modules.op.eq) ... ok
+test.modules.op.eq.SimpleEqWithDifferentTypeScalar (pt2_to_circle_test.test_op.test.modules.op.eq) ... ok
+test.modules.op.eq.SimpleEqWithEqualSign (pt2_to_circle_test.test_op.test.modules.op.eq) ... ok
+test.modules.op.eq.SimpleEqWithScalarFloat (pt2_to_circle_test.test_op.test.modules.op.eq) ... ok
+test.modules.op.eq.SimpleEqWithScalarInt (pt2_to_circle_test.test_op.test.modules.op.eq) ... ok
+test.modules.op.exp.SimpleExp (pt2_to_circle_test.test_op.test.modules.op.exp) ... ok
+test.modules.op.expand_copy.SimpleExpandCopy (pt2_to_circle_test.test_op.test.modules.op.expand_copy) ... ok
+test.modules.op.expand_copy.SimpleExpandCopyMinusDim (pt2_to_circle_test.test_op.test.modules.op.expand_copy) ... ok
+test.modules.op.full.SimpleFull (pt2_to_circle_test.test_op.test.modules.op.full) ... ok
+test.modules.op.full.SimpleFullBool (pt2_to_circle_test.test_op.test.modules.op.full) ... ok
+test.modules.op.full_like.SimpleFullLike (pt2_to_circle_test.test_op.test.modules.op.full_like) ... ok
+test.modules.op.full_like.SimpleFullLikeBool (pt2_to_circle_test.test_op.test.modules.op.full_like) ... ok
+test.modules.op.full_like.SimpleFullLikeWithDtypeBoolToInt (pt2_to_circle_test.test_op.test.modules.op.full_like) ... ok
+test.modules.op.full_like.SimpleFullLikeWithDtypeIntToBool (pt2_to_circle_test.test_op.test.modules.op.full_like) ... ok
+test.modules.op.full_like.SimpleFullLikeWithDtypeIntToFloat (pt2_to_circle_test.test_op.test.modules.op.full_like) ... ok
+test.modules.op.full_like.TrivialDtypeKwargsExample (pt2_to_circle_test.test_op.test.modules.op.full_like) ... ok
+test.modules.op.ge.SimpleGeWithDifferentTypeTensor (pt2_to_circle_test.test_op.test.modules.op.ge) ... ok
+test.modules.op.ge.SimpleGeWithScalarFloat (pt2_to_circle_test.test_op.test.modules.op.ge) ... ok
+test.modules.op.ge.SimpleGeWithScalarInt (pt2_to_circle_test.test_op.test.modules.op.ge) ... ok
+test.modules.op.ge.SimpleGeWithTensor (pt2_to_circle_test.test_op.test.modules.op.ge) ... ok
+test.modules.op.gelu.GeluWithApproximate (pt2_to_circle_test.test_op.test.modules.op.gelu) ... ok
+test.modules.op.gelu.SimpleGelu (pt2_to_circle_test.test_op.test.modules.op.gelu) ... ok
+test.modules.op.gt.SimpleGtWithDifferentTypeTensor (pt2_to_circle_test.test_op.test.modules.op.gt) ... ok
+test.modules.op.gt.SimpleGtWithScalarFloat (pt2_to_circle_test.test_op.test.modules.op.gt) ... ok
+test.modules.op.gt.SimpleGtWithScalarInt (pt2_to_circle_test.test_op.test.modules.op.gt) ... ok
+test.modules.op.gt.SimpleGtWithTensor (pt2_to_circle_test.test_op.test.modules.op.gt) ... ok
+test.modules.op.hardtanh.SimpleHardtanhFrom0to6 (pt2_to_circle_test.test_op.test.modules.op.hardtanh) ... ok
+test.modules.op.index.IndexTensor2x1 (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.IndexTensorAxis0And1 (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.IndexTensorAxis1 (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.IndexTensorWithSlice (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.SimpleAtenIndexTensorAxis1 (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.SimpleAtenIndexTensorAxis2 (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.SimpleIndexTensor (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index.SimpleIndexTensorBuffer (pt2_to_circle_test.test_op.test.modules.op.index) ... ok
+test.modules.op.index_select.SimpleIndexSelectWithConstIndex (pt2_to_circle_test.test_op.test.modules.op.index_select) ... ok
+test.modules.op.index_select.SimpleIndexSelectWithConstScalarIndex (pt2_to_circle_test.test_op.test.modules.op.index_select) ... ok
+test.modules.op.index_select.SimpleIndexSelectWithDim0 (pt2_to_circle_test.test_op.test.modules.op.index_select) ... ok
+test.modules.op.index_select.SimpleIndexSelectWithDim1 (pt2_to_circle_test.test_op.test.modules.op.index_select) ... ok
+test.modules.op.instance_norm.SimpleInstanceNorm (pt2_to_circle_test.test_op.test.modules.op.instance_norm) ... ok
+test.modules.op.instance_norm.SimpleInstanceNorm2d (pt2_to_circle_test.test_op.test.modules.op.instance_norm) ... ok
+test.modules.op.interpolate.InterpolateDouble (pt2_to_circle_test.test_op.test.modules.op.interpolate) ... ok
+test.modules.op.interpolate.InterpolateOnePointFive (pt2_to_circle_test.test_op.test.modules.op.interpolate) ... ok
+test.modules.op.interpolate.InterpolateThreeTimes (pt2_to_circle_test.test_op.test.modules.op.interpolate) ... ok
+test.modules.op.le.SimpleLeWithDifferentTypeTensor (pt2_to_circle_test.test_op.test.modules.op.le) ... ok
+test.modules.op.le.SimpleLeWithScalarFloat (pt2_to_circle_test.test_op.test.modules.op.le) ... ok
+test.modules.op.le.SimpleLeWithScalarInt (pt2_to_circle_test.test_op.test.modules.op.le) ... ok
+test.modules.op.le.SimpleLeWithTensor (pt2_to_circle_test.test_op.test.modules.op.le) ... ok
+test.modules.op.leaky_relu.SimpleLeakyRelu (pt2_to_circle_test.test_op.test.modules.op.leaky_relu) ... ok
+test.modules.op.linear.FQLinearWithFp32Bias (pt2_to_circle_test.test_op.test.modules.op.linear) ... ok
+test.modules.op.linear.LinearWithDictOutput (pt2_to_circle_test.test_op.test.modules.op.linear) ... ok
+test.modules.op.linear.LinearWithTreeOutput (pt2_to_circle_test.test_op.test.modules.op.linear) ... ok
+test.modules.op.linear.LinearWithUnusedInput (pt2_to_circle_test.test_op.test.modules.op.linear) ... ok
+test.modules.op.linear.SimpleLinear (pt2_to_circle_test.test_op.test.modules.op.linear) ... ok
+test.modules.op.log.SimpleLog (pt2_to_circle_test.test_op.test.modules.op.log) ... ok
+test.modules.op.log1p.SimpleLog1p (pt2_to_circle_test.test_op.test.modules.op.log1p) ... ok
+test.modules.op.logical_and.SimpleLogicalAnd (pt2_to_circle_test.test_op.test.modules.op.logical_and) ... ok
+test.modules.op.logical_not.SimpleLogicalNot (pt2_to_circle_test.test_op.test.modules.op.logical_not) ... ok
+test.modules.op.lt.SimpleLt (pt2_to_circle_test.test_op.test.modules.op.lt) ... ok
+test.modules.op.lt.SimpleLtWithAngleBracket (pt2_to_circle_test.test_op.test.modules.op.lt) ... ok
+test.modules.op.max_dim.MaxDimKeepDim (pt2_to_circle_test.test_op.test.modules.op.max_dim) ... ok
+test.modules.op.max_dim.SimpleMaxDim (pt2_to_circle_test.test_op.test.modules.op.max_dim) ... ok
+test.modules.op.max_pool2d.MaxPoolFunctionalNoStride (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.max_pool2d.MaxPoolNoStride (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.max_pool2d.MaxPoolNonSquareWindow (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.max_pool2d.MaxPoolReturningIndices (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... skipped 'Not Support Operator'
+test.modules.op.max_pool2d.MaxPoolWithPadding (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.max_pool2d.MaxPoolWithSamePadding (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.max_pool2d.SimpleMaxPool (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.max_pool2d.SimpleMaxPoolDynamicShape (pt2_to_circle_test.test_op.test.modules.op.max_pool2d) ... ok
+test.modules.op.maximum.MaximumWithFloatConstRight (pt2_to_circle_test.test_op.test.modules.op.maximum) ... ok
+test.modules.op.maximum.MaximumWithIntConstRight (pt2_to_circle_test.test_op.test.modules.op.maximum) ... ok
+test.modules.op.maximum.MaximumWithTensorLeftConstRight (pt2_to_circle_test.test_op.test.modules.op.maximum) ... ok
+test.modules.op.maximum.MaximumWithTwoInputs (pt2_to_circle_test.test_op.test.modules.op.maximum) ... ok
+test.modules.op.mean.MeanWithMinusDim (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.MeanWithRedundantView (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.MeanWithRedundantViewAndDtype (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.SimpleMean (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.SimpleMeanKeepDim (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.SimpleMeanNegativeTwoDim (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.SimpleMeanNegativeTwoDim2 (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.SimpleMeanTwoDim (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.mean.SimpleMeanTwoDim2 (pt2_to_circle_test.test_op.test.modules.op.mean) ... ok
+test.modules.op.minimum.MinimumWithFloatConstRight (pt2_to_circle_test.test_op.test.modules.op.minimum) ... ok
+test.modules.op.minimum.MinimumWithIntConstRight (pt2_to_circle_test.test_op.test.modules.op.minimum) ... ok
+test.modules.op.minimum.MinimumWithTensorLeftConstRight (pt2_to_circle_test.test_op.test.modules.op.minimum) ... ok
+test.modules.op.minimum.MinimumWithTwoInputs (pt2_to_circle_test.test_op.test.modules.op.minimum) ... ok
+test.modules.op.mm.SimpleMatmul (pt2_to_circle_test.test_op.test.modules.op.mm) ... ok
+test.modules.op.mul.MulBroadcast (pt2_to_circle_test.test_op.test.modules.op.mul) ... ok
+test.modules.op.mul.MulWithBuiltinFloat (pt2_to_circle_test.test_op.test.modules.op.mul) ... ok
+test.modules.op.mul.MulWithBuiltinInt (pt2_to_circle_test.test_op.test.modules.op.mul) ... ok
+test.modules.op.mul.SimpleMulWithScalar (pt2_to_circle_test.test_op.test.modules.op.mul) ... ok
+test.modules.op.mul.SimpleMulWithTensor (pt2_to_circle_test.test_op.test.modules.op.mul) ... ok
+test.modules.op.native_batch_norm.BatchNorm2DWithNoAffine (pt2_to_circle_test.test_op.test.modules.op.native_batch_norm) ... ok
+test.modules.op.native_batch_norm.NativeBatchNormLegitNoTraining (pt2_to_circle_test.test_op.test.modules.op.native_batch_norm) ... ok
+test.modules.op.native_batch_norm.SimpleBatchNorm2D (pt2_to_circle_test.test_op.test.modules.op.native_batch_norm) ... ok
+test.modules.op.native_group_norm.SimpleNativeGroupNorm (pt2_to_circle_test.test_op.test.modules.op.native_group_norm) ... ok
+test.modules.op.native_group_norm.SimpleNativeGroupNormNonAffine (pt2_to_circle_test.test_op.test.modules.op.native_group_norm) ... ok
+test.modules.op.native_group_norm.SimpleNativeGroupNormRedundantReshape (pt2_to_circle_test.test_op.test.modules.op.native_group_norm) ... ok
+test.modules.op.native_group_norm.SimpleNativeGroupNormWithLayerNorm3DInput (pt2_to_circle_test.test_op.test.modules.op.native_group_norm) ... ok
+test.modules.op.native_group_norm.SimpleNativeGroupNormWithLayerNormClass (pt2_to_circle_test.test_op.test.modules.op.native_group_norm) ... ok
+test.modules.op.native_group_norm.SimpleNativeGroupNormWithoutWeightBias (pt2_to_circle_test.test_op.test.modules.op.native_group_norm) ... ok
+test.modules.op.native_layer_norm.NativeLayerNormChannelLastInput (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.native_layer_norm.SimpleNativeLayerNorm (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.native_layer_norm.SimpleNativeLayerNormForMultiDimensionLayer (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.native_layer_norm.SimpleNativeLayerNormNonAffine (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.native_layer_norm.SimpleNativeLayerNormRedundantReshape (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.native_layer_norm.SimpleNativeLayerNormWithLayerNormClass (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.native_layer_norm.SimpleNativeLayerNormWithoutWeightBias (pt2_to_circle_test.test_op.test.modules.op.native_layer_norm) ... ok
+test.modules.op.ne.SimpleNeWithDifferentTypeScalar (pt2_to_circle_test.test_op.test.modules.op.ne) ... ok
+test.modules.op.ne.SimpleNeWithDifferentTypeTensor (pt2_to_circle_test.test_op.test.modules.op.ne) ... ok
+test.modules.op.ne.SimpleNeWithScalarFloat (pt2_to_circle_test.test_op.test.modules.op.ne) ... ok
+test.modules.op.ne.SimpleNeWithScalarInt (pt2_to_circle_test.test_op.test.modules.op.ne) ... ok
+test.modules.op.ne.SimpleNeWithTensorFloat (pt2_to_circle_test.test_op.test.modules.op.ne) ... ok
+test.modules.op.ne.SimpleNeWithTensorInt (pt2_to_circle_test.test_op.test.modules.op.ne) ... ok
+test.modules.op.neg.SimpleNeg (pt2_to_circle_test.test_op.test.modules.op.neg) ... ok
+test.modules.op.permute.PermuteWithView (pt2_to_circle_test.test_op.test.modules.op.permute) ... ok
+test.modules.op.permute.PermuteWithViewContiguous (pt2_to_circle_test.test_op.test.modules.op.permute) ... ok
+test.modules.op.permute.SimplePermute (pt2_to_circle_test.test_op.test.modules.op.permute) ... ok
+test.modules.op.pow.Int32TensorInt64Scalar (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowFloatTensorIntScalar (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowFloatTensorIntScalar2 (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowFloatTensorIntTensor (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowIntTensorFloatScalar (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowIntTensorFloatTensor (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowTensorScalar (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.pow.SimplePowTensorTensor (pt2_to_circle_test.test_op.test.modules.op.pow) ... ok
+test.modules.op.prelu.SimplePReLU (pt2_to_circle_test.test_op.test.modules.op.prelu) ... ok
+test.modules.op.reciprocal.SimpleReciprocal2 (pt2_to_circle_test.test_op.test.modules.op.reciprocal) ... ok
+test.modules.op.reciprocal.SimpleReciprocalOperator (pt2_to_circle_test.test_op.test.modules.op.reciprocal) ... ok
+test.modules.op.relu.SimpleRelu (pt2_to_circle_test.test_op.test.modules.op.relu) ... ok
+test.modules.op.relu6.SimpleReLU6 (pt2_to_circle_test.test_op.test.modules.op.relu6) ... ok
+test.modules.op.repeat.RepeatLongerRepeats (pt2_to_circle_test.test_op.test.modules.op.repeat) ... skipped 'Not Support Operator'
+test.modules.op.repeat.RepeatThreetimesHW (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.repeat.RepeatTwiceH (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.repeat.RepeatTwiceHThreeTimesW (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.repeat.RepeatTwiceHW (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.repeat.SimpleRepeat (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.repeat.SimpleRepeat2 (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.repeat.SimpleRepeatDynamicShape (pt2_to_circle_test.test_op.test.modules.op.repeat) ... ok
+test.modules.op.reshape.ReshapeChannelLastTensor (pt2_to_circle_test.test_op.test.modules.op.reshape) ... ok
+test.modules.op.reshape.ReshapeTorchAPI (pt2_to_circle_test.test_op.test.modules.op.reshape) ... ok
+test.modules.op.reshape.SimpleReshapeFirstDimMinus (pt2_to_circle_test.test_op.test.modules.op.reshape) ... ok
+test.modules.op.reshape.SimpleReshapeLastDimMinus (pt2_to_circle_test.test_op.test.modules.op.reshape) ... ok
+test.modules.op.round.SimpleRound (pt2_to_circle_test.test_op.test.modules.op.round) ... ok
+test.modules.op.rsqrt.SimpleRsqrt (pt2_to_circle_test.test_op.test.modules.op.rsqrt) ... ok
+test.modules.op.scalar_tensor.SimpleScalarTensor (pt2_to_circle_test.test_op.test.modules.op.scalar_tensor) ... ok
+test.modules.op.scalar_tensor.SimpleScalarTensorBool (pt2_to_circle_test.test_op.test.modules.op.scalar_tensor) ... ok
+test.modules.op.scalar_tensor.SimpleScalarTensorInt (pt2_to_circle_test.test_op.test.modules.op.scalar_tensor) ... ok
+test.modules.op.select.SimpleConstIndex (pt2_to_circle_test.test_op.test.modules.op.select) ... ok
+test.modules.op.select.SimpleSelect (pt2_to_circle_test.test_op.test.modules.op.select) ... ok
+test.modules.op.select.SimpleSelect2 (pt2_to_circle_test.test_op.test.modules.op.select) ... ok
+test.modules.op.select_copy.SimpleSelectCopy (pt2_to_circle_test.test_op.test.modules.op.select_copy) ... ok
+test.modules.op.select_copy.SimpleSelectCopy2 (pt2_to_circle_test.test_op.test.modules.op.select_copy) ... ok
+test.modules.op.sigmoid.SimpleSigmoid (pt2_to_circle_test.test_op.test.modules.op.sigmoid) ... ok
+test.modules.op.sin.SimpleSin (pt2_to_circle_test.test_op.test.modules.op.sin) ... ok
+test.modules.op.slice_copy.SimpleSliceCopy (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_copy.SimpleSliceCopyWithInvalidArgs (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_copy.SimpleSliceCopyWithMinus (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_copy.SimpleSliceCopyWithOutOfBound (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_copy.SimpleSliceOperator (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_copy.SimpleSliceOperatorWithMinus (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_copy.SimpleSliceOperatorWithOutOfBound (pt2_to_circle_test.test_op.test.modules.op.slice_copy) ... ok
+test.modules.op.slice_scatter.SimpleScatterCopyDim0 (pt2_to_circle_test.test_op.test.modules.op.slice_scatter) ... ok
+test.modules.op.slice_scatter.SimpleScatterCopyDim1 (pt2_to_circle_test.test_op.test.modules.op.slice_scatter) ... ok
+test.modules.op.slice_scatter.SimpleScatterCopyDim2 (pt2_to_circle_test.test_op.test.modules.op.slice_scatter) ... ok
+test.modules.op.softmax.SimpleSafeSoftMax (pt2_to_circle_test.test_op.test.modules.op.softmax) ... ok
+test.modules.op.softmax.SimpleSoftMax (pt2_to_circle_test.test_op.test.modules.op.softmax) ... ok
+test.modules.op.softmax.SimpleSoftMaxDimMinus (pt2_to_circle_test.test_op.test.modules.op.softmax) ... ok
+test.modules.op.split_with_sizes.SimpleSplitWithSizes (pt2_to_circle_test.test_op.test.modules.op.split_with_sizes) ... ok
+test.modules.op.split_with_sizes.SimpleSplitWithSizesCopy (pt2_to_circle_test.test_op.test.modules.op.split_with_sizes) ... ok
+test.modules.op.split_with_sizes.SimpleSplitWithSizesCopyWithDim1 (pt2_to_circle_test.test_op.test.modules.op.split_with_sizes) ... ok
+test.modules.op.split_with_sizes.SimpleSplitWithSizesWithDim1 (pt2_to_circle_test.test_op.test.modules.op.split_with_sizes) ... ok
+test.modules.op.sqrt.SimpleSqrt (pt2_to_circle_test.test_op.test.modules.op.sqrt) ... ok
+test.modules.op.squeeze.SimpleSqueeze (pt2_to_circle_test.test_op.test.modules.op.squeeze) ... ok
+test.modules.op.squeeze.SimpleSqueezeWithDims (pt2_to_circle_test.test_op.test.modules.op.squeeze) ... ok
+test.modules.op.squeeze.SimpleSqueezeWithSingleDim (pt2_to_circle_test.test_op.test.modules.op.squeeze) ... ok
+test.modules.op.sub.SimpleSub (pt2_to_circle_test.test_op.test.modules.op.sub) ... ok
+test.modules.op.sub.SubWithBuiltinFloat (pt2_to_circle_test.test_op.test.modules.op.sub) ... ok
+test.modules.op.sub.SubWithBuiltinInt (pt2_to_circle_test.test_op.test.modules.op.sub) ... ok
+test.modules.op.sub.SubWithOut (pt2_to_circle_test.test_op.test.modules.op.sub) ... ok
+test.modules.op.sum.SimpleSumDim2Int (pt2_to_circle_test.test_op.test.modules.op.sum) ... skipped 'Not supported yet'
+test.modules.op.sum.SimpleSumDim2Keepdim (pt2_to_circle_test.test_op.test.modules.op.sum) ... ok
+test.modules.op.sum.SimpleSumDimMinus1 (pt2_to_circle_test.test_op.test.modules.op.sum) ... ok
+test.modules.op.sum.SimpleSumDimMinus1With3D (pt2_to_circle_test.test_op.test.modules.op.sum) ... ok
+test.modules.op.tanh.SimpleTanh (pt2_to_circle_test.test_op.test.modules.op.tanh) ... ok
+test.modules.op.to.RedundantDeviceToCopy (pt2_to_circle_test.test_op.test.modules.op.to) ... ok
+test.modules.op.to.RedundantDtypeToCopy (pt2_to_circle_test.test_op.test.modules.op.to) ... ok
+test.modules.op.to.ToWithIntegerPlusFloat (pt2_to_circle_test.test_op.test.modules.op.to) ... ok
+test.modules.op.to.ToWithIntegerType (pt2_to_circle_test.test_op.test.modules.op.to) ... ok
+test.modules.op.to.ToWithMemoryFormat (pt2_to_circle_test.test_op.test.modules.op.to) ... skipped 'Not Support Operator'
+test.modules.op.to_dim_order_copy.SimpleToF32I32 (pt2_to_circle_test.test_op.test.modules.op.to_dim_order_copy) ... ok
+test.modules.op.to_dim_order_copy.SimpleToI32F32 (pt2_to_circle_test.test_op.test.modules.op.to_dim_order_copy) ... ok
+test.modules.op.unsqueeze.SimpleUnsqueeze (pt2_to_circle_test.test_op.test.modules.op.unsqueeze) ... ok
+test.modules.op.view.SimpleView (pt2_to_circle_test.test_op.test.modules.op.view) ... ok
+test.modules.op.view.SimpleViewFirstDimMinus (pt2_to_circle_test.test_op.test.modules.op.view) ... ok
+test.modules.op.view.SimpleViewLastDimMinus (pt2_to_circle_test.test_op.test.modules.op.view) ... ok
+test.modules.op.where.SimpleWhereWithConstantTensor (pt2_to_circle_test.test_op.test.modules.op.where) ... ok
+test.modules.op.where.SimpleWhereWithScalar (pt2_to_circle_test.test_op.test.modules.op.where) ... ok
+test.modules.op.where.SimpleWhereWithTensor (pt2_to_circle_test.test_op.test.modules.op.where) ... ok
+test.modules.op.add.SimpleAdd (pt2_to_qcircle_test.test_op.test.modules.op.add) ... skipped 'Internal test — run only if --include-internal is set'
+test.modules.op.conv2d.SimpleQuantizedConv (pt2_to_qcircle_test.test_op.test.modules.op.conv2d) ... skipped 'Internal test — run only if --include-internal is set'
+
+======================================================================
+FAIL: test.modules.op.conv2d.ConvStirdePadding (pt2_to_circle_test.test_op.test.modules.op.conv2d)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 84, in wrapper
+    self._run(
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 210, in _run
+    validate_result(torch_result, circle_result, **self.tolerance)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 57, in wrapper
+    raise e
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 54, in wrapper
+    return function(*args, **kwargs)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 239, in validate_result
+    torch.testing.assert_close(
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/testing/_comparison.py", line 1589, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 4 / 1848000 (0.0%)
+Greatest absolute difference: 1.5497207641601562e-06 at index (12, 30, 15, 43) (up to 1e-06 allowed)
+Greatest relative difference: 5.787059308204334e-06 at index (4, 0, 21, 14) (up to 1e-06 allowed)
+
+======================================================================
+FAIL: test.modules.op.conv2d.GroupedConv2dDifferentICAndOCWithTensorWeightBias (pt2_to_circle_test.test_op.test.modules.op.conv2d)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 84, in wrapper
+    self._run(
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 210, in _run
+    validate_result(torch_result, circle_result, **self.tolerance)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 57, in wrapper
+    raise e
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 54, in wrapper
+    return function(*args, **kwargs)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 239, in validate_result
+    torch.testing.assert_close(
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/testing/_comparison.py", line 1589, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 18 / 196608 (0.0%)
+Greatest absolute difference: 2.1457672119140625e-06 at index (0, 22, 2, 18) (up to 1e-06 allowed)
+Greatest relative difference: 3.0443346986430697e-05 at index (2, 27, 10, 14) (up to 1e-06 allowed)
+
+======================================================================
+FAIL: test.modules.op.conv2d.GroupedConv2dDifferentICAndOCWithTensorWeightNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 84, in wrapper
+    self._run(
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 210, in _run
+    validate_result(torch_result, circle_result, **self.tolerance)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 57, in wrapper
+    raise e
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 54, in wrapper
+    return function(*args, **kwargs)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 239, in validate_result
+    torch.testing.assert_close(
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/testing/_comparison.py", line 1589, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 7 / 196608 (0.0%)
+Greatest absolute difference: 2.130866050720215e-06 at index (0, 35, 2, 26) (up to 1e-06 allowed)
+Greatest relative difference: 0.00010994469630531967 at index (3, 35, 9, 28) (up to 1e-06 allowed)
+
+======================================================================
+FAIL: test.modules.op.conv2d.GroupedConv2dWithTensorWeightBias (pt2_to_circle_test.test_op.test.modules.op.conv2d)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 84, in wrapper
+    self._run(
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 210, in _run
+    validate_result(torch_result, circle_result, **self.tolerance)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 57, in wrapper
+    raise e
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 54, in wrapper
+    return function(*args, **kwargs)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 239, in validate_result
+    torch.testing.assert_close(
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/testing/_comparison.py", line 1589, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 94 / 196608 (0.0%)
+Greatest absolute difference: 2.7418136596679688e-06 at index (1, 16, 23, 26) (up to 1e-06 allowed)
+Greatest relative difference: 0.0002494214859325439 at index (0, 13, 17, 15) (up to 1e-06 allowed)
+
+======================================================================
+FAIL: test.modules.op.conv2d.GroupedConv2dWithTensorWeightNoBias (pt2_to_circle_test.test_op.test.modules.op.conv2d)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 84, in wrapper
+    self._run(
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 210, in _run
+    validate_result(torch_result, circle_result, **self.tolerance)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 57, in wrapper
+    raise e
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 54, in wrapper
+    return function(*args, **kwargs)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 239, in validate_result
+    torch.testing.assert_close(
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/testing/_comparison.py", line 1589, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 91 / 196608 (0.0%)
+Greatest absolute difference: 2.86102294921875e-06 at index (1, 36, 6, 15) (up to 1e-06 allowed)
+Greatest relative difference: 0.00029661995358765125 at index (0, 36, 14, 3) (up to 1e-06 allowed)
+
+======================================================================
+FAIL: test.modules.op.conv2d.TwoConvSameInput (pt2_to_circle_test.test_op.test.modules.op.conv2d)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 84, in wrapper
+    self._run(
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/builder.py", line 210, in _run
+    validate_result(torch_result, circle_result, **self.tolerance)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 57, in wrapper
+    raise e
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 54, in wrapper
+    return function(*args, **kwargs)
+  File "/home/dayoung.lee/git/TICO/test/pt2_to_circle_test/test_pt2_to_circle.py", line 239, in validate_result
+    torch.testing.assert_close(
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/site-packages/torch/testing/_comparison.py", line 1589, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 5 / 1520640 (0.0%)
+Greatest absolute difference: 1.2516975402832031e-06 at index (2, 32, 21, 58) (up to 1e-06 allowed)
+Greatest relative difference: 2.660062637005467e-05 at index (13, 32, 13, 43) (up to 1e-06 allowed)
+
+----------------------------------------------------------------------
+Ran 334 tests in 147.824s
+
+FAILED (failures=6, skipped=8)
+
+TEST FAILED at 'validate_result ...'
+ Tensor-likes are not close!
+
+Mismatched elements: 4 / 1848000 (0.0%)
+Greatest absolute difference: 1.5497207641601562e-06 at index (12, 30, 15, 43) (up to 1e-06 allowed)
+Greatest relative difference: 5.787059308204334e-06 at index (4, 0, 21, 14) (up to 1e-06 allowed)
+
+TEST FAILED at 'validate_result ...'
+ Tensor-likes are not close!
+
+Mismatched elements: 18 / 196608 (0.0%)
+Greatest absolute difference: 2.1457672119140625e-06 at index (0, 22, 2, 18) (up to 1e-06 allowed)
+Greatest relative difference: 3.0443346986430697e-05 at index (2, 27, 10, 14) (up to 1e-06 allowed)
+
+TEST FAILED at 'validate_result ...'
+ Tensor-likes are not close!
+
+Mismatched elements: 7 / 196608 (0.0%)
+Greatest absolute difference: 2.130866050720215e-06 at index (0, 35, 2, 26) (up to 1e-06 allowed)
+Greatest relative difference: 0.00010994469630531967 at index (3, 35, 9, 28) (up to 1e-06 allowed)
+
+TEST FAILED at 'validate_result ...'
+ Tensor-likes are not close!
+
+Mismatched elements: 94 / 196608 (0.0%)
+Greatest absolute difference: 2.7418136596679688e-06 at index (1, 16, 23, 26) (up to 1e-06 allowed)
+Greatest relative difference: 0.0002494214859325439 at index (0, 13, 17, 15) (up to 1e-06 allowed)
+
+TEST FAILED at 'validate_result ...'
+ Tensor-likes are not close!
+
+Mismatched elements: 91 / 196608 (0.0%)
+Greatest absolute difference: 2.86102294921875e-06 at index (1, 36, 6, 15) (up to 1e-06 allowed)
+Greatest relative difference: 0.00029661995358765125 at index (0, 36, 14, 3) (up to 1e-06 allowed)
+
+TEST FAILED at 'validate_result ...'
+ Tensor-likes are not close!
+
+Mismatched elements: 5 / 1520640 (0.0%)
+Greatest absolute difference: 1.2516975402832031e-06 at index (2, 32, 21, 58) (up to 1e-06 allowed)
+Greatest relative difference: 2.660062637005467e-05 at index (13, 32, 13, 43) (up to 1e-06 allowed)
+RUN unit tests with -k test.modules.op ...
+Traceback (most recent call last):
+  File "/home/dayoung.lee/git/TICO/infra/scripts/test_run.py", line 107, in <module>
+    main()
+  File "/home/dayoung.lee/git/TICO/infra/scripts/test_run.py", line 94, in main
+    subprocess.run(cmd, check=True)
+  File "/home/dayoung.lee/miniconda3/envs/py310/lib/python3.10/subprocess.py", line 526, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['python3', '-m', 'unittest', 'discover', '-s', '/home/dayoung.lee/git/TICO/test', '-k', 'test.modules.op', '-v']' returned non-zero exit status 1.
