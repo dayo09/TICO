@@ -44,8 +44,7 @@ class MatmulToLinearConverter(Converter):
     def __init__(self):
         super().__init__()
 
-    def convert(self, exported_program, node) -> torch.fx.Node:
-        graph_module = exported_program.graph_module
+    def convert(self, exported_program, graph_module, node) -> torch.fx.Node:
         graph = graph_module.graph
 
         mm_args = MatmulArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
@@ -73,7 +72,7 @@ class RhsConstMatmulToLinearConverter(MatmulToLinearConverter):
     def __init__(self):
         super().__init__()
 
-    def match(self, exported_program, node) -> bool:
+    def match(self, exported_program, graph_module, node) -> bool:
         if not node.target == torch.ops.aten.mm.default:
             return False
 
@@ -99,7 +98,7 @@ class LhsConstMatmulToLinearConverter(MatmulToLinearConverter):
     def __init__(self):
         super().__init__()
 
-    def match(self, exported_program, node) -> bool:
+    def match(self, exported_program, graph_module, node) -> bool:
         if not node.target == torch.ops.aten.mm.default:
             return False
 
@@ -114,8 +113,8 @@ class LhsConstMatmulToLinearConverter(MatmulToLinearConverter):
                 return True
         return False
 
-    def convert(self, exported_program, node) -> torch.fx.Node:
-        return super().convert(exported_program, node)
+    def convert(self, exported_program, graph_module, node) -> torch.fx.Node:
+        return super().convert(exported_program, graph_module, node)
 
 
 class SingleBatchLhsConstBmmToLinearConverter(Converter):
@@ -154,7 +153,7 @@ class SingleBatchLhsConstBmmToLinearConverter(Converter):
     def __init__(self):
         super().__init__()
 
-    def match(self, exported_program, node) -> bool:
+    def match(self, exported_program, graph_module, node) -> bool:
         if not node.target == torch.ops.aten.bmm.default:
             return False
 
@@ -185,7 +184,7 @@ class SingleBatchLhsConstBmmToLinearConverter(Converter):
 
         return True
 
-    def convert(self, exported_program, node) -> torch.fx.Node:
+    def convert(self, exported_program, graph_module, node) -> torch.fx.Node:
         graph_module = exported_program.graph_module
         graph = graph_module.graph
 
@@ -284,10 +283,9 @@ class ConvertMatmulToLinear(PassBase):
         if enable_single_batch_lhs_const_bmm:
             self.converters.append(SingleBatchLhsConstBmmToLinearConverter())
 
-    def call(self, exported_program: ExportedProgram) -> PassResult:
+    def call(self, exported_program: ExportedProgram, graph_module) -> PassResult:
         logger = logging.getLogger(__name__)
 
-        graph_module = exported_program.graph_module
         graph = graph_module.graph
         modified = False
         for node in graph.nodes:
@@ -295,10 +293,10 @@ class ConvertMatmulToLinear(PassBase):
                 continue
 
             for converter in self.converters:
-                if not converter.match(exported_program, node):
+                if not converter.match(exported_program, graph_module, node):
                     continue
 
-                new_node = converter.convert(exported_program, node)
+                new_node = converter.convert(exported_program, graph_module, node)
                 modified = True
                 logger.debug(
                     f"{node.name} is replaced with {new_node.name} operator (permute + linear)"
