@@ -28,11 +28,14 @@ from tico.serialize.operators.hashable_opcode import OpCode
 from tico.serialize.operators.node_visitor import get_node_visitors
 from tico.utils import logging
 from tico.utils.serialize import finalise_tensor_names, validate_tensor_shapes
+from tico.utils.subgraph import get_all_graph_modules
 
 
 multiple_output_ops = [
     torch.ops.aten.split_with_sizes.default,
     torch.ops.aten.max.dim,
+    # torch.ops.circle_custom.if_.default,
+    # torch.ops.circle_custom.if_,
 ]
 
 def _initialize_model() -> tuple[CircleModel, CircleSubgraph]:
@@ -46,7 +49,6 @@ def _initialize_model() -> tuple[CircleModel, CircleSubgraph]:
     graph = CircleSubgraph(model)
     return model, graph
 
-from tico.utils.subgraph import get_gm_map
 
 def build_circle(
     ep: ExportedProgram, config: CompileConfigBase = get_default_config()
@@ -64,21 +66,17 @@ def build_circle(
     model = CircleModel()
     
     op_codes: Dict[OpCode, int] = {}
-    
-    for gm_info in get_gm_map(ep):
-        if gm_info["name"]: #non-root subgraph
-            graph_module = getattr(ep.graph_module, gm_info["name"])
-        else:
-            graph_module = ep.graph_module
+    for graph_module, name in get_all_graph_modules(ep):
         ep_graph = graph_module.graph
-        
         graph = CircleSubgraph(model)
+        
         # Export tensors
-        if gm_info["name"]: #non-root subgraph
-            _export_tensors_for_subgraph(graph, ep_graph, ep)
-        else:
+        if name == '': # root graph
             _export_tensors(graph, ep_graph, ep)
-        if gm_info["index"] == 0: # Root graph
+        else:
+            _export_tensors_for_subgraph(graph, ep_graph, ep)
+
+        if name == '': # root graph
             # Register inputs
             logger.debug("---------------Register inputs--------------")
             for in_spec in ep.graph_signature.input_specs:
@@ -108,7 +106,6 @@ def build_circle(
         # Export operators
         logger.debug("---------------Export operators--------------")
         visitors = get_node_visitors(op_codes, graph)
-        ep_graph.print_tabular()
         for node in ep_graph.nodes:
             if node.op != "call_function":
                 continue
@@ -161,8 +158,6 @@ def _export_tensors(graph: CircleSubgraph, ep_graph, ep: ExportedProgram) -> Non
             if node.target in multiple_output_ops:
                 continue
             node_val = node.meta["val"]
-            if node.name == 'cond':
-                continue
             if node_val.layout != torch.strided:
                 raise RuntimeError(
                     f"Only support dense tensors (node layout: {node_val.layout})"
@@ -179,7 +174,7 @@ def _export_tensors(graph: CircleSubgraph, ep_graph, ep: ExportedProgram) -> Non
         elif node.op == "output":
             for output in node.args[0]:
                 if isinstance(output, torch.fx.Node):
-                    assert graph.has_tensor(output.name)
+                    assert graph.has_tensor(output.name), f"{output}"
             continue
 
         elif node.op == "call_method":

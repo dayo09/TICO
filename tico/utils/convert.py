@@ -87,7 +87,7 @@ from tico.utils.trace_decorators import (
     trace_graph_diff_on_func,
 )
 from tico.utils.utils import has_quantization_ops, SuppressWarning
-from tico.utils.subgraph import get_gm_map
+from tico.utils.subgraph import get_all_graph_modules
 
 
 @trace_const_diff_on_func
@@ -199,11 +199,7 @@ def convert_exported_module_to_circle(
 
     assert isinstance(config, CompileConfigBase)
     
-    for gm_info in get_gm_map(exported_program):
-        if gm_info["name"]: #non-root subgraph
-            graph_module = getattr(exported_program.graph_module, gm_info["name"])
-        else:
-            graph_module = exported_program.graph_module
+    for graph_module, _ in get_all_graph_modules(exported_program):
         logger = logging.getLogger(__name__)
         logger.debug("Input ExportedProgram (must be core aten)")
         logger.debug(exported_program)
@@ -232,13 +228,9 @@ def convert_exported_module_to_circle(
         #     CompositeImplicitAutograd and have functional schema are safe to not decompose.
         exported_program = traced_run_decompositions(exported_program)
             
-    for gm_info in get_gm_map(exported_program):
-        if gm_info["name"]: #non-root subgraph
-            graph_module = getattr(exported_program.graph_module, gm_info["name"])
-        else:
-            graph_module = exported_program.graph_module
+    for graph_module, _ in get_all_graph_modules(exported_program):
         graph = graph_module.graph
-        
+
         reinterpret_pass = PassManager(
             passes=[
                 MapSubgraph(),

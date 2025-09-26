@@ -1,43 +1,42 @@
 import torch
 from torch.export import ExportedProgram
-from typing import Optional
-import functools
+from copy import deepcopy
+from typing import Iterator, List, Iterator
+from dataclasses import dataclass
+@dataclass
+class FrozenSubgraph:
+    idx: int
+    name: str # model-wise, unique name
+    frozen_graph_module: torch.fx.GraphModule # copied subgraph
 
-_gm_map = None
-def get_gm_map(ep: Optional[ExportedProgram] = None):
-    """
-    Returns [{"index":0, "name": "true_graph_0", "getter": lambda ep: ep.graph_module}, ...}]
-    """
-    # Build _gm_map only once while compiler running
-    global _gm_map
-    if _gm_map is None:
-        assert ep is not None
-        _gm_map = _build_gm_map(ep)
-    return _gm_map
+_frozen_subgraphs: List[FrozenSubgraph] = []
 
-def _build_gm_map(ep: ExportedProgram):
-    ret = []
+def freeze_subgraphs(ep: ExportedProgram):
+    """
+    Freeze subgraphs to provide shape inference logic of FakeTensor.
+    """
+    for idx, (graph_module, name) in enumerate(get_all_graph_modules(ep, subgraph_only=True), start = 1):
+        global _frozen_subgraphs
+        _frozen_subgraphs += [FrozenSubgraph(idx = idx, name = name, frozen_graph_module = deepcopy(graph_module))]
+
+def get_frozen_subgraphs() -> List[FrozenSubgraph]:
+    global _frozen_subgraphs
+    return _frozen_subgraphs
+
+
+def get_all_graph_modules(ep: ExportedProgram, subgraph_only: bool = False) -> Iterator[tuple[torch.fx.GraphModule, str]]:
+    """
+    Get all graph modules and its name
+    """
+    if not subgraph_only:
+        yield ep.graph_module, "" # root has no name
     
-    # root GraphModule 추가
-    ret.append({
-        "index": len(ret),
-        "name": "",
-        "gm": ep.graph_module,
-    })
-    
-    # Inspect non-root subgraphs
+    # yield subgraphs
     for node in ep.graph.nodes:
         if node.op == "get_attr":
-            attr = getattr(node.graph.owning_module, node.target)
+            graph_module = getattr(node.graph.owning_module, node.target)
             
             # TODO: Enable recursion (n-depth)
-            if isinstance(attr, torch.fx.graph_module.GraphModule):
-                assert hasattr(node, 'name')
-                assert getattr(node, 'name') != ret[0]["name"]
-                graph_name = getattr(node, 'name')
-                ret.append({
-                    "index": len(ret),
-                    "name": graph_name,
-                    "gm": attr,
-                })
-    return ret
+            if isinstance(graph_module, torch.fx.graph_module.GraphModule):
+                assert hasattr(graph_module, 'meta')
+                yield graph_module, getattr(node, 'name')

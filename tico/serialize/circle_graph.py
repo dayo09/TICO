@@ -324,5 +324,4 @@ class CircleSubgraph(circle.SubGraph.SubGraphT):
             return self.name_to_tid[node_name]
 
         # Unreachable
-        breakpoint()
         raise RuntimeError("fx Node was not converted to tensor.")

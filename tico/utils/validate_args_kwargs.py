@@ -211,8 +211,8 @@ class CircleIfArgs:
     """
     """
     pred: torch.fx.Node
-    then_graph_idx: int
-    else_graph_idx: int
+    then_graph: torch.fx.Node
+    else_graph: torch.fx.Node
     if_args: torch.fx.immutable_collections.immutable_list
 
 @enforce_type
