@@ -2,9 +2,9 @@
 
 import pycircle
 from pycircle.circleir.model import Model
+from pycircle.circleir.operators import CircleAdd, CircleIf
 from pycircle.circleir.subgraph import Subgraph
 from pycircle.circleir.tensor import Tensor
-from pycircle.circleir.operators import CircleAdd, CircleIf
 from pycircle.util.alias import TensorType
 
 # 입력 텐서 및 상수 텐서 정의
@@ -27,7 +27,10 @@ else_subgraph = Subgraph()
 else_subgraph.inputs = [Tensor("input0", [1, 3], TensorType.FLOAT32), weight_sub_100]
 
 add_op_else = CircleAdd()
-add_op_else.inputs = [else_subgraph.inputs[0], Tensor("input0", [1, 3], TensorType.FLOAT32)]
+add_op_else.inputs = [
+    else_subgraph.inputs[0],
+    Tensor("input0", [1, 3], TensorType.FLOAT32),
+]
 add_op_else.outputs(0).attribute("add_output_else", [1, 3], TensorType.FLOAT32)
 else_subgraph.outputs = [add_op_else.outputs(0)]
 
@@ -59,6 +62,7 @@ pycircle.export_circle_model(circle_model, "signature_def.circle")
 
 # onert를 통한 추론 (Inference)
 import torch
+
 try:
     from onert import infer
 except ImportError:
@@ -67,10 +71,10 @@ except ImportError:
 session = infer.session("signature_def.circle")
 output = session.infer(
     (
-        torch.tensor([True]),               # condition tensor
-        torch.randn(1, 3),                 # input tensor 0
-        torch.tensor([[100., 100., 100.]]),# weights tensor
+        torch.tensor([True]),  # condition tensor
+        torch.randn(1, 3),  # input tensor 0
+        torch.tensor([[100.0, 100.0, 100.0]]),  # weights tensor
     ),
-    measure=True
+    measure=True,
 )
 print(output)

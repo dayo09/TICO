@@ -3,9 +3,9 @@
 import pycircle
 
 from pycircle.circleir.model import Model
+from pycircle.circleir.operators import CircleAdd
 from pycircle.circleir.subgraph import Subgraph
 from pycircle.circleir.tensor import Tensor
-from pycircle.circleir.operators import CircleAdd
 from pycircle.util.alias import TensorType
 
 subgraph1 = Subgraph()
@@ -40,22 +40,19 @@ circle_model.description = "pycircle example : signature_def"
 # circle_model.subgraphs = [subgraph2, subgraph1]
 circle_model.subgraphs = [subgraph1, subgraph2]
 circle_model.signature_defs = {
-    "add_constant": {
-        "subgraph_index": 0
-    },
-    "add_two_inputs": {
-        "subgraph_index": 1
-    },
+    "add_constant": {"subgraph_index": 0},
+    "add_two_inputs": {"subgraph_index": 1},
 }
 
 pycircle.export_circle_model(circle_model, "signature_def_original.circle")
 
 import torch
+
 try:
     from onert import infer
 except ImportError:
     raise RuntimeError("The 'onert' package is required to run this function.")
 
 session_float = infer.session("signature_def_original.circle")
-output = session_float.infer((torch.randn(1,3),))
+output = session_float.infer((torch.randn(1, 3),))
 breakpoint()
