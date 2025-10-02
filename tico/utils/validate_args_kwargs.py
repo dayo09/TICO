@@ -210,11 +210,16 @@ class CloneArgs:
 @dataclass
 class CircleIfArgs:
     """
-    CondArgs
+    Why carry both `graph` and `graph_idx`?
+    [1] `graph` is required to get the proper meta value while processing FakeTensor for torch nodes. Plus, carrying this information until `serialize` leaves the graph until that process, otherwise the graph will be cleaned-up by dead code elimination of graph_module.
+    [2] `graph_idx` is required to map to circle ir.
     """
+
     pred: torch.fx.Node
     then_graph: torch.fx.Node
     else_graph: torch.fx.Node
+    then_graph_idx: int
+    else_graph_idx: int
     if_args: torch.fx.immutable_collections.immutable_list
 
 

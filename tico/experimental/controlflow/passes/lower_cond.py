@@ -24,7 +24,7 @@ import torch
 from tico.utils import logging
 from tico.utils.graph import create_node
 from tico.utils.passes import PassBase, PassResult
-from tico.utils.subgraph import get_all_graph_modules, store_subgraph_indices
+from tico.utils.subgraph import get_all_graph_modules
 from tico.utils.trace_decorators import trace_graph_diff_on_pass
 from tico.utils.validate_args_kwargs import CondArgs
 from torch.export import ExportedProgram
@@ -33,42 +33,37 @@ from torch.utils import _pytree as pytree
 
 @trace_graph_diff_on_pass
 class LowerCond(PassBase):
-    # Pass that lowers `torch.cond` higher‑order ops into a custom intermediate representation.
     """
-    To support torch.cond,
+    To support torch.cond, with Circle If, translate into a custom IR.
+    Note that the custom IR must include the information of both graph node and graph index.
+    `graph node` is required to carry the graph until serialization step alive.
+    `graph index` is required to create the corresponding circle ir, because circle ir requires graph numbering.
+
     (1) fill in the meta values, which requires specific subgraph inference. (this process differs from that of filling meta of other tensors)
-    (2) freeze the subgraph information to ensure no further modifications during compilation or export phases.
-    (3) translate the frozen subgraph along with meta-information into a custom intermediate representation (IR)
+    (2) get the subgraph index
+    (3) translate the information into a custom intermediate representation (IR)
     """
 
     def __init__(self):
-        # Initialise the base Pass class.
         super().__init__()
 
     def call(self, exported_program: ExportedProgram, _) -> PassResult:
-        # Main entry point for the pass. It walks the graph, finds `torch.ops.higher_order.cond`
-        # nodes, extracts their subgraphs, computes meta‑values, freezes the subgraphs, and
-        # replaces the original cond node with a custom `circle_custom.if_` node.
         logger = logging.getLogger(__name__)
 
         graph_module = exported_program.graph_module
         graph: torch.fx.Graph = graph_module.graph
         for node in graph.nodes:
-            # Iterate over all nodes to locate `torch.ops.higher_order.cond` calls.
             if node.op != "call_function":
                 continue
             if node.target != torch.ops.higher_order.cond:
-                # Skip nodes that are not `torch.ops.higher_order.cond`.
                 continue
 
             cond_args = CondArgs(*node.args, **node.kwargs)
-            # Extract the true/false subgraphs and the condition arguments.
             true_graph = cond_args.true_graph
             false_graph = cond_args.false_graph
             graph_args = cond_args.cond_args
 
             def _set_meta_val(graph_node, graph_module, graph_args):
-                # Helper to compute and set the `meta["val"]` for a node in a subgraph.
                 def _get_meta_val(node):
                     assert hasattr(
                         node, "meta"
@@ -85,24 +80,29 @@ class LowerCond(PassBase):
                 )
 
                 new_val = graph_module(*args, **kwargs)  # type: ignore[operator]
-                # Execute the subgraph with concrete arguments to obtain runtime values.
                 graph_node.meta["val"] = new_val
 
-            for graph_module, name in get_all_graph_modules(
-                exported_program, subgraph_only=True
+            # [1] Fill in the meta values
+            # [2] Get the subgraph indices
+            true_graph_idx = -1
+            false_graph_idx = -1
+            for idx, (graph_module, name) in enumerate(
+                get_all_graph_modules(exported_program, subgraph_only=True), start=1
             ):
                 if true_graph.name == name:
                     _set_meta_val(true_graph, graph_module, graph_args)
+                    true_graph_idx = idx
                 if false_graph.name == name:
                     _set_meta_val(false_graph, graph_module, graph_args)
+                    false_graph_idx = idx
 
             assert "val" in true_graph.meta, f"{true_graph} has no node.meta['val']"
             assert "val" in false_graph.meta, f"{false_graph} has no node.meta['val']"
+            assert true_graph_idx != -1
+            assert false_graph_idx != -1
 
-            store_subgraph_indices(exported_program)
-            # Freeze subgraphs to prevent further modifications during later compilation stages.
+            # [3] Create the translated IR (circle_custom.if_)
             with graph.inserting_before(node):
-                # Create a custom `circle_custom.if_` node that represents the lowered conditional.
                 circle_if = create_node(
                     graph,
                     torch.ops.circle_custom.if_,
@@ -110,6 +110,8 @@ class LowerCond(PassBase):
                         cond_args.condition,
                         cond_args.true_graph,
                         cond_args.false_graph,
+                        true_graph_idx,
+                        false_graph_idx,
                         cond_args.cond_args,
                     ),
                     kwargs={},

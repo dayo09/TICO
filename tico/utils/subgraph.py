@@ -1,32 +1,7 @@
-from copy import deepcopy
-from dataclasses import dataclass
-from typing import Iterator, Iterator, List
+from typing import Iterator
 
 import torch
 from torch.export import ExportedProgram
-
-
-@dataclass
-class SubgraphIdx:
-    idx: int
-    name: str  # model-wise, unique name
-
-
-_subgraph_indices: List[SubgraphIdx] = []
-
-
-def store_subgraph_indices(ep: ExportedProgram):
-    global _subgraph_indices
-
-    for idx, (_, name) in enumerate(
-        get_all_graph_modules(ep, subgraph_only=True), start=1
-    ):
-        _subgraph_indices += [SubgraphIdx(idx=idx, name=name)]
-
-
-def get_subgraph_indices() -> List[SubgraphIdx]:
-    global _subgraph_indices
-    return _subgraph_indices
 
 
 def get_all_graph_modules(

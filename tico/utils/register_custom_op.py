@@ -25,27 +25,31 @@ def CircleIf():
     @custom_op("circle_custom::if_", mutates_args=())
     def if_(
         pred: torch.Tensor,
-        true_graph: torch.Tensor,
-        false_graph: torch.Tensor,
+        then_graph: torch.Tensor,
+        else_graph: torch.Tensor,
+        then_graph_idx: int,
+        else_graph_idx: int,
         if_args: List[torch.Tensor],
     ) -> torch.Tensor:
         if pred:
-            result = true_graph(*if_args)
+            result = then_graph(*if_args)
             assert len(result) == 1  # TODO: Support tuple of result
             return result[0]
         else:
-            result = false_graph(*if_args)
+            result = else_graph(*if_args)
             assert len(result) == 1  # TODO: Support tuple of result
             return result[0]
 
     @register_fake("circle_custom::if_")
     def _(
         pred: torch.Tensor,
-        true_graph: torch.Tensor,
-        false_graph: torch.Tensor,
+        then_graph: torch.Tensor,
+        else_graph: torch.Tensor,
+        then_graph_idx: int,
+        else_graph_idx: int,
         if_args: List[torch.Tensor],
     ):
-        result = true_graph(*if_args)
+        result = then_graph(*if_args)
         assert len(result) == 1  # TODO: Support tuple of result
 
         return result[0]
