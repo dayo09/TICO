@@ -113,13 +113,14 @@ def get_data(
 
 
 def propagate_constants(
-    exported_program: ExportedProgram,
-    graph_module
+    exported_program: ExportedProgram, graph_module
 ) -> OrderedDict[torch.fx.Node, torch.Tensor]:
     """
     Propagates constants and returns a dictionary of node to constant tensors of the graph.
     """
-    const_node_to_tensor = get_constant_placeholder_to_tensor_dict(exported_program, graph_module)
+    const_node_to_tensor = get_constant_placeholder_to_tensor_dict(
+        exported_program, graph_module
+    )
 
     graph: torch.fx.Graph = graph_module.graph
     for node in graph.nodes:
@@ -177,7 +178,7 @@ def erase_constant_node(
 def create_constant_placeholder(
     const_node_to_tensor: Mapping[torch.fx.Node, torch.Tensor],
     exported_program: ExportedProgram,
-    graph_module
+    graph_module,
 ) -> List[torch.fx.Node]:
     """
     This function creates constant placeholder nodes according to the given constant nodes (`const_node_to_tensor`) and replace it with the original node.

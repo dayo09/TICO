@@ -20,24 +20,36 @@ from torch.library import custom_op, register_fake
 
 from tico.utils.mx.mx_ops import _quantize_mx
 
+
 def CircleIf():
     @custom_op("circle_custom::if_", mutates_args=())
-    def if_(pred: torch.Tensor, true_graph: torch.Tensor, false_graph: torch.Tensor, if_args: List[torch.Tensor]) -> torch.Tensor:
+    def if_(
+        pred: torch.Tensor,
+        true_graph: torch.Tensor,
+        false_graph: torch.Tensor,
+        if_args: List[torch.Tensor],
+    ) -> torch.Tensor:
         if pred:
             result = true_graph(*if_args)
-            assert len(result) == 1 # TODO: Support tuple of result
+            assert len(result) == 1  # TODO: Support tuple of result
             return result[0]
         else:
             result = false_graph(*if_args)
-            assert len(result) == 1 # TODO: Support tuple of result
+            assert len(result) == 1  # TODO: Support tuple of result
             return result[0]
 
     @register_fake("circle_custom::if_")
-    def _(pred: torch.Tensor, true_graph: torch.Tensor, false_graph: torch.Tensor, if_args: List[torch.Tensor]):
+    def _(
+        pred: torch.Tensor,
+        true_graph: torch.Tensor,
+        false_graph: torch.Tensor,
+        if_args: List[torch.Tensor],
+    ):
         result = true_graph(*if_args)
-        assert len(result) == 1 # TODO: Support tuple of result
-        
+        assert len(result) == 1  # TODO: Support tuple of result
+
         return result[0]
+
 
 # Note that an operator assumes input tensor has NHWC format.
 def CircleResizeNearestNeighbor():

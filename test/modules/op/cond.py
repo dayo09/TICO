@@ -17,6 +17,7 @@ import torch
 from test.modules.base import TestModuleBase
 from test.utils.tag import use_onert
 
+
 @use_onert
 class SimpleCond1(TestModuleBase):
     class Sin(torch.nn.Module):
@@ -33,14 +34,16 @@ class SimpleCond1(TestModuleBase):
         self.cos = self.Cos()
 
     def forward(self, x, y):
-        return torch.cond(x.sum() + y.sum() > 0,
-                        lambda x_: self.sin(x_),
-                          lambda x_: self.cos(x_),
-                          operands=(x,))
+        return torch.cond(
+            x.sum() + y.sum() > 0,
+            lambda x_: self.sin(x_),
+            lambda x_: self.cos(x_),
+            operands=(x,),
+        )
+
     def get_example_inputs(self):
         return (torch.randn(3, 3), torch.randn(3, 3)), {}
-    
-    
+
 
 @use_onert
 class SimpleCond2(TestModuleBase):
@@ -58,14 +61,17 @@ class SimpleCond2(TestModuleBase):
         self.cos = self.Cos()
 
     def forward(self, x, y):
-        return torch.cond(x.sum() + y.sum() > 0,
-                          lambda x, y: self.sin(x, y),
-                          lambda x, y: self.cos(x, y),
-                          operands=(x,y))
+        return torch.cond(
+            x.sum() + y.sum() > 0,
+            lambda x, y: self.sin(x, y),
+            lambda x, y: self.cos(x, y),
+            operands=(x, y),
+        )
+
     def get_example_inputs(self):
         return (torch.randn(3, 3), torch.randn(3, 3)), {}
-    
-    
+
+
 @use_onert
 class SimpleCond3(TestModuleBase):
     class Sin(torch.nn.Module):
@@ -82,10 +88,13 @@ class SimpleCond3(TestModuleBase):
         self.cos = self.Cos()
 
     def forward(self, x, y):
-        return torch.cond(x.sum() + y.sum() > 0,
-                          lambda x, y: self.sin(x, y),
-                          lambda x, y: self.cos(x, y),
-                          operands=(x,y))
+        return torch.cond(
+            x.sum() + y.sum() > 0,
+            lambda x, y: self.sin(x, y),
+            lambda x, y: self.cos(x, y),
+            operands=(x, y),
+        )
+
     def get_example_inputs(self):
         return (torch.randn(3, 3), torch.randn(3, 3)), {}
 

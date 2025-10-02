@@ -66,6 +66,7 @@ class PropagateQParamForward(PassBase):
             dst.meta[QPARAM_KEY] = copy.deepcopy(src.meta[QPARAM_KEY])
 
             logger.debug(f"{src.name}'s quantparam is propagated to {dst.name}.")
+
         graph: torch.fx.Graph = graph_module.graph
         for node in graph.nodes:
             if node.op != "call_function":

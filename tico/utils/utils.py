@@ -184,10 +184,14 @@ def set_new_meta_val(node: torch.fx.node.Node):
     - After updating node's args or kwargs
     """
     assert isinstance(node, torch.fx.node.Node)
-    
+
     def _get_meta_val(node):
-        assert hasattr(node, 'meta'), f"'node' has no attribute named 'meta' (node: {node})"
-        assert "val" in node.meta, f"val key not in node.meta (node: {node}, meta: {node.meta})"
+        assert hasattr(
+            node, "meta"
+        ), f"'node' has no attribute named 'meta' (node: {node})"
+        assert (
+            "val" in node.meta
+        ), f"val key not in node.meta (node: {node}, meta: {node.meta})"
         return node.meta["val"]
 
     # `node.target()` needs only `Tensor` for its arguments.
@@ -197,9 +201,10 @@ def set_new_meta_val(node: torch.fx.node.Node):
         _get_meta_val,
         (node.args, node.kwargs),
     )
-    
+
     new_val = node.target(*args, **kwargs)  # type: ignore[operator]
     node.meta["val"] = new_val
+
 
 def unset_meta_val(node: torch.fx.node.Node):
     """

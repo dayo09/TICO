@@ -92,7 +92,9 @@ class CastClampMixedTypeArgs(PassBase):
     def __init__(self):
         super().__init__()
 
-    def convert(self, exported_program: ExportedProgram, node: torch.fx.Node, graph_module) -> bool:
+    def convert(
+        self, exported_program: ExportedProgram, node: torch.fx.Node, graph_module
+    ) -> bool:
         logger = logging.getLogger(__name__)
         modified = False
 

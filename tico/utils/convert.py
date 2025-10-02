@@ -20,6 +20,7 @@ import torch
 from torch.export import export, ExportedProgram
 
 from tico.config import CompileConfigBase, get_default_config
+from tico.experimental.controlflow.passes.lower_cond import LowerCond
 from tico.experimental.quantization.passes.fold_quant_ops import FoldQuantOps
 from tico.experimental.quantization.passes.insert_quantize_on_dtype_mismatch import (
     InsertQuantizeOnDtypeMismatch,
@@ -33,9 +34,6 @@ from tico.experimental.quantization.passes.propagate_qparam_forward import (
 from tico.experimental.quantization.passes.quantize_bias import QuantizeBias
 from tico.experimental.quantization.passes.remove_weight_dequant_op import (
     RemoveWeightDequantOp,
-)
-from tico.experimental.controlflow.passes.map_subgraph import (
-    MapSubgraph,
 )
 from tico.passes.cast_aten_where_arg_type import CastATenWhereArgType
 from tico.passes.cast_clamp_mixed_type_args import CastClampMixedTypeArgs
@@ -82,12 +80,12 @@ from tico.utils import logging
 from tico.utils.errors import NotYetSupportedError
 from tico.utils.model import CircleModel
 from tico.utils.passes import PassManager
+from tico.utils.subgraph import get_all_graph_modules
 from tico.utils.trace_decorators import (
     trace_const_diff_on_func,
     trace_graph_diff_on_func,
 )
 from tico.utils.utils import has_quantization_ops, SuppressWarning
-from tico.utils.subgraph import get_all_graph_modules
 
 
 @trace_const_diff_on_func
@@ -198,7 +196,7 @@ def convert_exported_module_to_circle(
         config = get_default_config()
 
     assert isinstance(config, CompileConfigBase)
-    
+
     for graph_module, _ in get_all_graph_modules(exported_program):
         logger = logging.getLogger(__name__)
         logger.debug("Input ExportedProgram (must be core aten)")
@@ -227,13 +225,13 @@ def convert_exported_module_to_circle(
         #   UserWarning: At pre-dispatch tracing, we assume that any custom op marked with
         #     CompositeImplicitAutograd and have functional schema are safe to not decompose.
         exported_program = traced_run_decompositions(exported_program)
-            
+
     for graph_module, _ in get_all_graph_modules(exported_program):
         graph = graph_module.graph
 
         reinterpret_pass = PassManager(
             passes=[
-                MapSubgraph(),
+                LowerCond(),
             ]
         )
         reinterpret_pass.run(exported_program, graph_module)
@@ -265,7 +263,9 @@ def convert_exported_module_to_circle(
                 CastMixedTypeArgs(preserve_ep_invariant=True),
                 ConstPropPass(),
                 SegmentIndexSelectConst(),
-                LegalizeCausalMaskValue(enabled=config.get("legalize_causal_mask_value")),
+                LegalizeCausalMaskValue(
+                    enabled=config.get("legalize_causal_mask_value")
+                ),
                 ConvertMatmulToLinear(
                     enable_lhs_const=config.get("convert_lhs_const_mm_to_fc"),
                     enable_rhs_const=config.get("convert_rhs_const_mm_to_fc"),

@@ -24,13 +24,17 @@ from tico.serialize.circle_graph import CircleSubgraph
 from tico.serialize.operators.hashable_opcode import OpCode
 from tico.serialize.operators.node_visitor import NodeVisitor, register_node_visitor
 from tico.serialize.operators.utils import create_builtin_operator, get_op_index
-from tico.utils.validate_args_kwargs import CircleIfArgs
 from tico.utils.errors import NotYetSupportedError
-from tico.utils.subgraph import get_frozen_subgraphs
+from tico.utils.subgraph import get_subgraph_indices
+from tico.utils.validate_args_kwargs import CircleIfArgs
+
 
 @register_node_visitor
 class CircleIfVisitor(NodeVisitor):
-    target: List[torch._ops.OpOverload] = [torch.ops.circle_custom.if_, torch.ops.circle_custom.if_.default]
+    target: List[torch._ops.OpOverload] = [
+        torch.ops.circle_custom.if_,
+        torch.ops.circle_custom.if_.default,
+    ]
 
     def __init__(self, op_codes: Dict[OpCode, int], graph: CircleSubgraph):
         super().__init__(op_codes, graph)
@@ -43,23 +47,23 @@ class CircleIfVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.IF, self._op_codes
         )
         if_args = CircleIfArgs(*node.args, **node.kwargs)
-        
+
         pred = if_args.pred
         then_graph = if_args.then_graph
         else_graph = if_args.else_graph
         arguments = if_args.if_args
-        
+
         then_graph_idx = None
         else_graph_idx = None
-        for frozen_subgraph in get_frozen_subgraphs():
+        
+        for frozen_subgraph in get_subgraph_indices():
             if frozen_subgraph.name == then_graph.name:
                 then_graph_idx = frozen_subgraph.idx
             if frozen_subgraph.name == else_graph.name:
                 else_graph_idx = frozen_subgraph.idx
         assert then_graph_idx is not None
         assert else_graph_idx is not None
-            
-        
+
         inputs = [pred, *arguments]
         outputs = [node]
         # outputs = [i for i in node.users.keys()]
@@ -68,5 +72,5 @@ class CircleIfVisitor(NodeVisitor):
         operator.builtinOptions = circle.IfOptions.IfOptionsT()
         operator.builtinOptions.thenSubgraphIndex = then_graph_idx
         operator.builtinOptions.elseSubgraphIndex = else_graph_idx
-        
+
         return operator

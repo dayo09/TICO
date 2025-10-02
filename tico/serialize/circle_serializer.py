@@ -38,6 +38,7 @@ multiple_output_ops = [
     # torch.ops.circle_custom.if_,
 ]
 
+
 def _initialize_model() -> tuple[CircleModel, CircleSubgraph]:
     """Initialize a new Circle model and subgraph.
 
@@ -64,19 +65,19 @@ def build_circle(
     logger = logging.getLogger(__name__)
     builder = flatbuffers.Builder()
     model = CircleModel()
-    
+
     op_codes: Dict[OpCode, int] = {}
     for graph_module, name in get_all_graph_modules(ep):
         ep_graph = graph_module.graph
         graph = CircleSubgraph(model)
-        
+
         # Export tensors
-        if name == '': # root graph
+        if name == "":  # root graph
             _export_tensors(graph, ep_graph, ep)
         else:
             _export_tensors_for_subgraph(graph, ep_graph, ep)
 
-        if name == '': # root graph
+        if name == "":  # root graph
             # Register inputs
             logger.debug("---------------Register inputs--------------")
             for in_spec in ep.graph_signature.input_specs:
@@ -123,7 +124,7 @@ def build_circle(
 
         finalise_tensor_names(graph)
         validate_tensor_shapes(graph)
-        
+
         model.subgraphs.append(graph)
 
     # Encode operator codes
@@ -187,7 +188,9 @@ def _export_tensors(graph: CircleSubgraph, ep_graph, ep: ExportedProgram) -> Non
             raise AssertionError(f"Unknown fx.Node op {node.op}")
 
 
-def _export_tensors_for_subgraph(graph: CircleSubgraph, ep_graph, ep: ExportedProgram) -> None:
+def _export_tensors_for_subgraph(
+    graph: CircleSubgraph, ep_graph, ep: ExportedProgram
+) -> None:
     """Export all tensors from the exported program to the circle graph.
 
     Args:
@@ -196,14 +199,16 @@ def _export_tensors_for_subgraph(graph: CircleSubgraph, ep_graph, ep: ExportedPr
     """
     logger = logging.getLogger(__name__)
     logger.debug("---------------Export tensors--------------")
-    buf_name_to_data = {name: buf for name, buf in ep.named_buffers()} #model-wise context
+    buf_name_to_data = {
+        name: buf for name, buf in ep.named_buffers()
+    }  # model-wise context
 
     for node in ep_graph.nodes:
         if node.op == "call_function":
             if node.target in multiple_output_ops:
                 continue
             node_val = node.meta["val"]
-            if node.name == 'cond':
+            if node.name == "cond":
                 continue
             if node_val.layout != torch.strided:
                 raise RuntimeError(
@@ -214,15 +219,15 @@ def _export_tensors_for_subgraph(graph: CircleSubgraph, ep_graph, ep: ExportedPr
 
         elif node.op == "placeholder":
             _handle_placeholder_node(graph, node, ep_graph, ep, buf_name_to_data)
-            graph.add_input(node.name) # This is added for subgraph
+            graph.add_input(node.name)  # This is added for subgraph
 
         elif node.op == "get_attr":
             _handle_get_attr_node(graph, node)
         elif node.op == "output":
-            for output in node.args[0]: 
+            for output in node.args[0]:
                 if isinstance(output, torch.fx.Node):
                     assert graph.has_tensor(output.name)
-                graph.add_output(output.name) # This is added for subgraph
+                graph.add_output(output.name)  # This is added for subgraph
             continue
 
         elif node.op == "call_method":
@@ -234,10 +239,11 @@ def _export_tensors_for_subgraph(graph: CircleSubgraph, ep_graph, ep: ExportedPr
         else:
             raise AssertionError(f"Unknown fx.Node op {node.op}")
 
+
 def _handle_placeholder_node(
     graph: CircleSubgraph,
     node: torch.fx.Node,
-    ep_graph, 
+    ep_graph,
     ep: ExportedProgram,
     buf_name_to_data: dict,
 ) -> None:
