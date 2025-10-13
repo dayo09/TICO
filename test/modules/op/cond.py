@@ -19,14 +19,17 @@ from test.utils.tag import use_onert
 
 
 @use_onert
-class SimpleCond1(TestModuleBase):
+class SimpleCondWithBuffers(TestModuleBase):
     class Sin(torch.nn.Module):
         def forward(self, x):
             return torch.sin(x) + 1
 
     class Cos(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.register_buffer("buf", torch.tensor([3]))
         def forward(self, x):
-            return torch.cos(x) - 1
+            return torch.cos(x) - self.buf
 
     def __init__(self):
         super().__init__()

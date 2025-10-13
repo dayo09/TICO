@@ -17,7 +17,7 @@ from functools import wraps
 import torch
 from torch.export import ExportedProgram
 
-from tico.utils.diff_graph import capture, capture_const, log, log_const
+from tico.utils.diff_graph import capture, capture_const, log, log_const, capture_all, log_all
 from tico.utils.passes import PassBase
 
 
@@ -55,9 +55,9 @@ def trace_graph_diff_on_pass(cls):
         def wrapped(self, exported_program, graph_module):
             assert isinstance(exported_program, ExportedProgram)
             assert isinstance(graph_module, torch.fx.GraphModule), type(graph_module)
-            capture(graph_module.graph)
+            capture_all(exported_program)
             ret = fn(self, exported_program, graph_module)
-            log(graph_module.graph, title=str(cls.__name__), recapture=False)
+            log_all(exported_program, title=str(cls.__name__), recapture=False)
             return ret
 
         return wrapped

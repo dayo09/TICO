@@ -150,8 +150,40 @@ def capture(graph: torch.fx.Graph):
     global graph_captured
     graph_captured = str(graph)
 
+from tico.utils.subgraph import get_all_graph_modules
+all_graphs_captured = {}
 
-@disable_when(LOG_LEVEL > DEBUG)
+@disable_when(LOG_LEVEL > LOGGER_THRESHOLD)
+def capture_all(ep: torch.export.ExportedProgram):
+    assert isinstance(ep, torch.export.ExportedProgram)
+    global all_graphs_captured
+    for graph, name in get_all_graph_modules(ep):
+        all_graphs_captured[name] = str(graph)
+
+@disable_when(LOG_LEVEL > LOGGER_THRESHOLD)
+def log_all(ep: torch.export.ExportedProgram, title: str, recapture: bool):
+    assert isinstance(ep, torch.export.ExportedProgram)
+    global all_graphs_captured
+    all_graphs_now = {}
+    logger = getLogger(__name__)
+    for graph, name in get_all_graph_modules(ep):
+        all_graphs_now[name] = str(graph)
+        
+    for name, graph in all_graphs_now.items():
+        graph_captured = all_graphs_captured[name]
+        diff = strdiff(f"{graph_captured}\n", f"{graph}\n")
+        prefix = f"[{title}]" if title else ""
+        if len(diff) > 0:
+            logger.debug(f"{prefix} Graph({ (name if name != '' else 'root') }) is changed.")
+            logger.debug(f"\n{diff}")
+
+        if recapture:
+            all_graphs_captured[name] = deepcopy(graph)
+        else:
+            all_graphs_captured[name] = None  # reset
+
+        
+@disable_when(LOG_LEVEL > LOGGER_THRESHOLD)
 def log(graph: torch.fx.Graph, title: str, recapture: bool):
     """
     Capture the end-point graph for graph-diff.

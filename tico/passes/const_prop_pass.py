@@ -45,32 +45,32 @@ from tico.utils.trace_decorators import (
     trace_graph_diff_on_pass,
 )
 from tico.utils.utils import get_fake_mode
+from tico.utils.subgraph import get_all_graph_modules
 
 
 def get_constant_placeholder_to_tensor_dict(
     exported_program: ExportedProgram,
-    graph_module,
 ) -> OrderedDict[torch.fx.Node, torch.Tensor]:
     """
     Returns a dictionary of constant placeholder node to constant tensor.
     """
     const_node_to_tensor: OrderedDict[torch.fx.Node, torch.Tensor] = OrderedDict()
-    graph: torch.fx.Graph = graph_module.graph
-    for node in graph.nodes:
-        if node.op != "placeholder":
-            continue
-        tensor: Optional[torch.Tensor] = None
-        if is_param(exported_program, node):
-            tensor = get_param(exported_program, node)
-        elif is_buffer(exported_program, node):
-            tensor = get_buffer(exported_program, node)
-        elif is_lifted_tensor_constant(exported_program, node):
-            tensor = get_lifted_tensor_constant(exported_program, node)
+    
+    for graph_module, _ in get_all_graph_modules(exported_program):
+        for node in graph_module.graph.nodes:
+            if node.op != "placeholder":
+                continue
+            tensor: Optional[torch.Tensor] = None
+            if is_param(exported_program, node):
+                tensor = get_param(exported_program, node)
+            elif is_buffer(exported_program, node):
+                tensor = get_buffer(exported_program, node)
+            elif is_lifted_tensor_constant(exported_program, node):
+                tensor = get_lifted_tensor_constant(exported_program, node)
 
-        if tensor is not None:
-            assert node not in const_node_to_tensor
-            const_node_to_tensor[node] = tensor
-
+            if tensor is not None:
+                assert node not in const_node_to_tensor
+                const_node_to_tensor[node] = tensor
     return const_node_to_tensor
 
 
@@ -113,46 +113,47 @@ def get_data(
 
 
 def propagate_constants(
-    exported_program: ExportedProgram, graph_module
+    exported_program: ExportedProgram
 ) -> OrderedDict[torch.fx.Node, torch.Tensor]:
     """
     Propagates constants and returns a dictionary of node to constant tensors of the graph.
     """
     const_node_to_tensor = get_constant_placeholder_to_tensor_dict(
-        exported_program, graph_module
+        exported_program
     )
 
-    graph: torch.fx.Graph = graph_module.graph
-    for node in graph.nodes:
-        if node.op != "call_function":
-            continue
-        if node.target in [
-            torch.ops.quantized_decomposed.dequantize_per_channel.default,
-            torch.ops.quantized_decomposed.dequantize_per_tensor.default,
-        ]:
-            continue
-        if not has_constant_data(
-            [node.args, node.kwargs],
-            const_node_to_tensor,
-        ):
-            continue
+    for graph_module, _ in get_all_graph_modules(exported_program):
+        graph: torch.fx.Graph = graph_module.graph
+        for node in graph.nodes:
+            if node.op != "call_function":
+                continue
+            if node.target in [
+                torch.ops.quantized_decomposed.dequantize_per_channel.default,
+                torch.ops.quantized_decomposed.dequantize_per_tensor.default,
+            ]:
+                continue
+            if not has_constant_data(
+                [node.args, node.kwargs],
+                const_node_to_tensor,
+            ):
+                continue
 
-        args_data, kwargs_data = pytree.tree_map(
-            lambda x: get_data(x, exported_program, const_node_to_tensor),
-            (node.args, node.kwargs),
-        )
+            args_data, kwargs_data = pytree.tree_map(
+                lambda x: get_data(x, exported_program, const_node_to_tensor),
+                (node.args, node.kwargs),
+            )
 
-        # propagate constant because all of its args are constant tensors.
-        with torch.no_grad():
-            prop_constant_tensor = node.target(*args_data, **kwargs_data)
-        const_node_to_tensor[node] = prop_constant_tensor
+            # propagate constant because all of its args are constant tensors.
+            with torch.no_grad():
+                prop_constant_tensor = node.target(*args_data, **kwargs_data)
+            const_node_to_tensor[node] = prop_constant_tensor
 
     return const_node_to_tensor
 
 
 def erase_constant_node(
     exported_program: ExportedProgram,
-    node: torch.fx.Node,
+    node_to_erase: torch.fx.Node,
 ) -> None:
     """
     Remove corresponding tensor from param/constants dict.
@@ -162,23 +163,41 @@ def erase_constant_node(
     A) They internally uses `exported_program.graph_signature.input_specs` and the `input_specs` are updated
       at the end of the const_prop_pass.
     """
-    signature = exported_program.graph_signature
-    if name := signature.inputs_to_parameters.get(node.name, None):
-        exported_program.state_dict.pop(name, None)
-    elif name := signature.inputs_to_lifted_tensor_constants.get(node.name, None):
-        exported_program.constants.pop(name, None)
-    elif name := signature.inputs_to_buffers.get(node.name, None):
-        exported_program.constants.pop(name, None)
-        exported_program.state_dict.pop(name, None)
-
     # Remove from graph.
-    exported_program.graph.erase_node(node)
+    for graph_module, _ in get_all_graph_modules(exported_program):
+        if node_to_erase in graph_module.graph.nodes:
+            graph_module.graph.erase_node(node_to_erase)
+    
+    remove_from_program = True
+    for graph_module, _ in get_all_graph_modules(exported_program):
+        for node in graph_module.graph.nodes:
+            if node.name == node_to_erase.name:
+                remove_from_program = False
+    
+    if remove_from_program:
+        signature = exported_program.graph_signature
+        if name := signature.inputs_to_parameters.get(node_to_erase.name, None):
+            exported_program.state_dict.pop(name, None)
+        elif name := signature.inputs_to_lifted_tensor_constants.get(node_to_erase.name, None):
+            exported_program.constants.pop(name, None)
+        elif name := signature.inputs_to_buffers.get(node_to_erase.name, None):
+            exported_program.constants.pop(name, None)
+            exported_program.state_dict.pop(name, None)
+
+def get_first_node(exported_program, graph):
+    first_node = get_first_user_input(exported_program, graph)
+    if not first_node:
+        # Placeholder nodes must be the first N nodes in the nodes list of a graph.
+        # Therefore, insert the newly created placeholders at the start of the node list.
+        assert graph.nodes
+        first_node = list(graph.nodes)[0]
+        
+    return first_node
 
 
 def create_constant_placeholder(
     const_node_to_tensor: Mapping[torch.fx.Node, torch.Tensor],
     exported_program: ExportedProgram,
-    graph_module,
 ) -> List[torch.fx.Node]:
     """
     This function creates constant placeholder nodes according to the given constant nodes (`const_node_to_tensor`) and replace it with the original node.
@@ -186,22 +205,21 @@ def create_constant_placeholder(
     placeholders = []
 
     fake_mode = get_fake_mode(exported_program)
-    first_user_input = get_first_user_input(exported_program)
-    if not first_user_input:
-        # Placeholder nodes must be the first N nodes in the nodes list of a graph.
-        # Therefore, insert the newly created placeholders at the start of the node list.
-        assert exported_program.graph.nodes
-        first_node = list(exported_program.graph.nodes)[0]
-        first_user_input = first_node
 
     # Iterate over nodes in reverse order to insert created placeholder before the `first_user_input`.
     for node, prop_constant_tensor in reversed(const_node_to_tensor.items()):
+        if node.graph is not exported_program.graph_module.graph:
+            # Do not propagates constants of subgraphs
+            # WHY?
+            #   Uplifting constants to placeholder may alter subgraph signature which may break control flow IR's invariant.
+            #   They assumes that control flow ir's `argument` operands' number equals to those of subgraph's input signatures.
+            continue
+        # All users of this constant node are also constant, so we don't need to create a new constant node.
         if all(x in const_node_to_tensor for x in node.users):
-            # All users of this constant node are also constant, so we don't need to create a new constant node.
             erase_constant_node(exported_program, node)
             continue
 
-        if node.op == "placeholder":
+        if node.op == "placeholder":# and graph_module is exported_program.graph_module:
             continue
 
         # Add `prop_constant_tensor` to program.state_dict.
@@ -210,17 +228,24 @@ def create_constant_placeholder(
         )
 
         # Insert a new placeholder node for the propagated constant tensor.
-        with exported_program.graph.inserting_before(first_user_input):
-            const_placeholder_node = exported_program.graph.placeholder(
+        with node.graph.inserting_before(get_first_node(exported_program, node.graph)):
+            const_placeholder_node = node.graph.placeholder(
                 prop_constant_tensor_fqn
             )
 
         # The key here should be same with "target" arg of InputSpec when creating input specs.
         exported_program.constants[prop_constant_tensor_fqn] = prop_constant_tensor
+        print(f"exported_program.constants[{prop_constant_tensor_fqn}] = {prop_constant_tensor}")
 
         # Replace the original node with the new constant node.
         node.replace_all_uses_with(const_placeholder_node, propagate_meta=True)
-        exported_program.graph.erase_node(node)
+        print(node)
+        for graph_module, _ in get_all_graph_modules(exported_program):
+            if node in graph_module.graph.nodes:
+                graph_module.graph.print_tabular()
+                graph_module.graph.erase_node(node)
+                graph_module.graph.print_tabular()
+        breakpoint()
 
         # Update the meta data of the new placeholder node.
         const_placeholder_node.meta["val"] = fake_mode.from_tensor(
@@ -266,40 +291,56 @@ class ConstPropPass(PassBase):
 
     def __init__(self) -> None:
         super().__init__()
-
-    def call(self, exported_program: ExportedProgram, graph_module) -> PassResult:
+    
+    def call(self, exported_program: ExportedProgram, _) -> PassResult:
+        from tico.utils.subgraph import get_all_graph_modules
         logger = logging.getLogger(__name__)
-        graph: torch.fx.Graph = graph_module.graph
-
-        # [1], [2]
-        const_node_to_tensor: OrderedDict[
-            torch.fx.Node, torch.Tensor
-        ] = propagate_constants(exported_program, graph_module)
+        all_placeholders = []
+        all_new_name_to_spec = {}
+        
+        const_node_to_tensor: OrderedDict[torch.fx.Node, torch.Tensor] = OrderedDict()
+            # [1], [2]
+        const_node_to_tensor.update(propagate_constants(exported_program))
+        print(f"const_node_to_tensor: {const_node_to_tensor}")
         # [3]
         placeholders = create_constant_placeholder(
-            const_node_to_tensor, exported_program, graph_module
+            const_node_to_tensor, exported_program
         )
+        print(f"placeholders: {placeholders}")
         # [4]
         new_name_to_spec = create_input_specs(placeholders)
-
+        print(f"new_name_to_spec: {new_name_to_spec}")
+        
+        all_placeholders.extend(placeholders)
+        all_new_name_to_spec.update(new_name_to_spec)
+        
+        
+        for graph_module, _ in get_all_graph_modules(exported_program):
+            graph_module.graph.eliminate_dead_code()
+            graph_module.recompile()
+            # graph_module.graph.print_tabular()
+            
         # [5]
         # Get existing input specs.
         existing_name_to_spec = {
             s.arg.name: s for s in exported_program.graph_signature.input_specs
         }
+        
         # Add the new constants to existing input specs dict.
-        existing_name_to_spec.update(new_name_to_spec)
-        # Generate new input spec.
+        existing_name_to_spec.update(all_new_name_to_spec)
+        
+        # Generate new input spec. 
+        # I/O for root graph only
         new_input_specs = []
-        for node in exported_program.graph.nodes:
-            if node.op != "placeholder":
+        for node in exported_program.graph_module.graph.nodes:
+            if node.op != "placeholder": # and graph_module is not exported_program.graph_module:
                 continue
             assert node.name in existing_name_to_spec, node.name
             new_input_specs.append(existing_name_to_spec[node.name])
         exported_program.graph_signature.input_specs = new_input_specs
 
-        graph.eliminate_dead_code()
-        graph_module.recompile()
+        # graph.eliminate_dead_code()
+        # graph_module.recompile()
 
         logger.debug("Constant nodes are propagated")
         # Constant folding can be done with only one time run. Let's set `modified` to False.

@@ -67,11 +67,9 @@ def get_torch_buffer_value(node: torch.fx.Node, ep: ExportedProgram):
     return named_buf[buf_name]
 
 
-def get_first_user_input(exported_program: ExportedProgram) -> Optional[torch.fx.Node]:
+def get_first_user_input(exported_program: ExportedProgram, graph: torch.fx.Graph) -> Optional[torch.fx.Node]:
     """Returns the first user input node in the graph."""
     first_user_input: Optional[torch.fx.Node] = None
-    graph_module = exported_program.graph_module
-    graph: torch.fx.Graph = graph_module.graph
     for node in graph.nodes:
         if (
             node.op == "placeholder"

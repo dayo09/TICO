@@ -201,6 +201,7 @@ def convert_exported_module_to_circle(
         logger = logging.getLogger(__name__)
         logger.debug("Input ExportedProgram (must be core aten)")
         logger.debug(exported_program)
+        # graph_module.graph.print_tabular()
 
         # PRE-EDGE PASSES
         #
@@ -235,7 +236,11 @@ def convert_exported_module_to_circle(
             ]
         )
         reinterpret_pass.run(exported_program, graph_module)
+        
+    ConstPropPass().call(exported_program, exported_program.graph_module)
 
+    for graph_module, _ in get_all_graph_modules(exported_program):
+        graph = graph_module.graph
         # TODO Distinguish legalize and optimize
         circle_legalize = PassManager(
             passes=[
@@ -261,7 +266,6 @@ def convert_exported_module_to_circle(
                 RemoveRedundantToCopy(),
                 MergeConsecutiveCat(),
                 CastMixedTypeArgs(preserve_ep_invariant=True),
-                ConstPropPass(),
                 SegmentIndexSelectConst(),
                 LegalizeCausalMaskValue(
                     enabled=config.get("legalize_causal_mask_value")
@@ -293,6 +297,7 @@ def convert_exported_module_to_circle(
             ]
         )
         circle_legalize.run(exported_program, graph_module)
+        ConstPropPass().call(exported_program, exported_program.graph_module)
 
         # TODO Give an option to enable quantiztion to user
         enable_quantization = has_quantization_ops(graph)
