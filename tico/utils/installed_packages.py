@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from packaging.version import Version
 
 ##############################
 #### Transformers Package ####
 ##############################
-
 
 def is_transformers_installed():
     try:
@@ -24,6 +24,7 @@ def is_transformers_installed():
         return True
     except ImportError:
         return False
+
 
 
 def is_dynamic_cache_available():
