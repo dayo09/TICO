@@ -17,7 +17,7 @@ from typing import Any
 import tico.utils
 import tico.utils.model
 from tico.utils.signature import ModelInputSpec
-
+import torch
 
 def infer_with_circle_interpreter(
     circle_path: str,
@@ -51,6 +51,13 @@ def infer_with_circle_interpreter(
 
     return circle_result
 
+from tico.serialize.circle_mapping import (
+    extract_circle_dtype,
+    extract_circle_shape,
+    str_to_circle_dtype,
+    to_circle_dtype,
+    to_circle_shape,
+)
 
 def infer_with_onert(
     circle_path: str,
@@ -83,6 +90,39 @@ def infer_with_onert(
     inputs = ispec.bind(forward_args, forward_kwargs, check=True)
 
     session_float = infer.session(circle_path)
+    
+    # Handle dynamic shapes: onert cannot execute models with unspecified dimensions
+    # Check if any input has dynamic dimensions (indicated by -1)
+    input_tensorinfos = session_float.get_inputs_tensorinfo()
+    has_dynamic_shapes = any(
+        -1 in info.dims for info in input_tensorinfos
+    )
+    
+    if has_dynamic_shapes:
+        # Set concrete input shapes based on the actual input data
+        from onert.native.libnnfw_api_pybind import tensorinfo
+        
+        for idx, (info, input_data) in enumerate(zip(input_tensorinfos, inputs)):
+            if -1 in info.dims:
+                # Create new tensorinfo with concrete shape from input data
+                new_info = tensorinfo()
+                new_info.rank = len(input_data.shape)
+                new_info.dims = list(input_data.shape)
+
+                assert input_data.dtype in [torch.float32, torch.float]
+                new_info.dtype = "float32"
+
+                try:
+                    session_float.session.set_input_tensorinfo(idx, new_info)
+                except Exception as e:
+                    # If setting tensorinfo fails, try to continue anyway
+                    # Some versions of onert might handle this differently
+                    import warnings
+                    warnings.warn(
+                        f"Failed to set input tensorinfo for input {idx}: {e}. "
+                        f"Attempting inference anyway."
+                    )
+    
     output = session_float.infer(inputs)
 
     return output

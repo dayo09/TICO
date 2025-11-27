@@ -235,7 +235,7 @@ def validate_result(
         else:
             raise TypeError("Expected result must be a tensor or scalar value.")
 
-        # Check both dypte and value mismatch
+        # Check both dtype and value mismatch
         torch.testing.assert_close(
             actual=circle_tensor,
             expected=expected_tensor,

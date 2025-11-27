@@ -47,7 +47,7 @@ def create_builtin_operator(
 ) -> circle.Operator.OperatorT:
     operator = circle.Operator.OperatorT()
     operator.opcodeIndex = op_index
-    operator.inputs = [graph.get_tid(input) for input in inputs]
+    operator.inputs = [graph.get_tid(input_) for input_ in inputs]
     operator.outputs = [graph.get_tid(output) for output in outputs]
     return operator
 
