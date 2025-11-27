@@ -69,6 +69,7 @@ def infer(circle_binary: bytes, *args: Any, **kwargs: Any) -> Any:
         graph.Tensors(graph.Inputs(o)) for o in range(graph.InputsLength())
     ]
     model_input_shapes_np = [t.ShapeAsNumpy() for t in model_input_tensors]
+    model_input_shape_sigs_np = [t.ShapeSignatureAsNumpy() for t in model_input_tensors]
     model_input_types_cm = [t.Type() for t in model_input_tensors]
 
     # Check if given inputs' dtype and shape from users match the inputs' from model binary.
@@ -77,11 +78,30 @@ def infer(circle_binary: bytes, *args: Any, **kwargs: Any) -> Any:
             f"Mismatch input length: input({len(user_inputs)}) != circle model({len(model_input_shapes_np)})"
         )
     for input_idx, user_input in enumerate(user_inputs):
-        # Shape
-        if list(user_input.shape) != list(model_input_shapes_np[input_idx]):
-            raise RuntimeError(
-                f"Mismatch input {input_idx} shape : input({user_input.shape}) != circle model({model_input_shapes_np[input_idx]})"
-            )
+        # Shape - check against shape_signature if available (for dynamic shapes)
+        model_shape = model_input_shapes_np[input_idx]
+        model_shape_sig = model_input_shape_sigs_np[input_idx]
+        user_shape = list(user_input.shape)
+        
+        # If shape_signature exists, validate against it (supports dynamic dimensions)
+        if model_shape_sig is not None and len(model_shape_sig) > 0:
+            if len(user_shape) != len(model_shape_sig):
+                raise RuntimeError(
+                    f"Mismatch input {input_idx} rank: input({len(user_shape)}) != circle model({len(model_shape_sig)})"
+                )
+            for dim_idx, (user_dim, sig_dim) in enumerate(zip(user_shape, model_shape_sig)):
+                # -1 in shape_signature means dynamic dimension, accept any value
+                if sig_dim != -1 and user_dim != sig_dim:
+                    raise RuntimeError(
+                        f"Mismatch input {input_idx} shape at dimension {dim_idx}: input({user_dim}) != circle model({sig_dim})"
+                    )
+        else:
+            # No shape_signature, validate against static shape
+            if user_shape != list(model_shape):
+                raise RuntimeError(
+                    f"Mismatch input {input_idx} shape : input({user_input.shape}) != circle model({model_shape})"
+                )
+        
         # Data type
         user_input_type_cm = to_circle_dtype(user_input.dtype)
         if user_input_type_cm != model_input_types_cm[input_idx]:

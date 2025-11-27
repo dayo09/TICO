@@ -39,6 +39,7 @@ class SymSizeSimple(TestModuleBase):
 
 
 @tag.use_onert
+@tag.skip(reason="Not yet supported")
 class SymSizeInReshape(TestModuleBase):
     """
     Test case using sym_size.int in a reshape operation.

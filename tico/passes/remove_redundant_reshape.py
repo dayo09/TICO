@@ -76,6 +76,9 @@ class RemoveRedundantReshapePattern1(PassBase):
             if len(reshape1.users) != 1:
                 continue
             reshape1_args = ReshapeArgs(*reshape1.args, **reshape1.kwargs)  # type: ignore[arg-type]
+            # Skip dynamic reshapes (shape is a single Node)
+            if isinstance(reshape1_args.shape, torch.fx.Node):
+                continue
             reshape1_input = reshape1_args.input
             # `(AxBxC) - aten.reshape` - (1xAxBxC)
             if [1] + list(extract_shape(reshape1_input)) != list(
@@ -158,6 +161,9 @@ class RemoveRedundantReshapePattern2(PassBase):
             if len(reshape1.users) != 1:
                 continue
             reshape1_args = ReshapeArgs(*reshape1.args, **reshape1.kwargs)  # type: ignore[arg-type]
+            # Skip dynamic reshapes (shape is a single Node)
+            if isinstance(reshape1_args.shape, torch.fx.Node):
+                continue
             reshape1_input = reshape1_args.input
             # `(AxBxC) - aten.reshape` - (1xAxBxC)
             if [1] + list(extract_shape(reshape1_input)) != list(
@@ -239,6 +245,9 @@ class RemoveRedundantReshapePattern3(PassBase):
             if not is_target_node(reshape_1, ops.aten.reshape):
                 continue
             reshape_1_args = ReshapeArgs(*reshape_1.args, **reshape_1.kwargs)  # type: ignore[arg-type]
+            # Skip dynamic reshapes (shape is a single Node)
+            if isinstance(reshape_1_args.shape, torch.fx.Node):
+                continue
             softmax = reshape_1_args.input
 
             # softmax
@@ -275,6 +284,9 @@ class RemoveRedundantReshapePattern3(PassBase):
             if reshape_2.target not in ops.aten.reshape:
                 continue
             reshape_2_args = ReshapeArgs(*reshape_2.args, **reshape_2.kwargs)  # type: ignore[arg-type]
+            # Skip dynamic reshapes (shape is a single Node)
+            if isinstance(reshape_2_args.shape, torch.fx.Node):
+                continue
             reshape_2_input = reshape_2_args.input
             assert isinstance(reshape_2_input, torch.fx.Node), type(reshape_2_input)
             # reshape_3
@@ -283,6 +295,9 @@ class RemoveRedundantReshapePattern3(PassBase):
             if reshape_3.target not in ops.aten.reshape:
                 continue
             reshape_3_args = ReshapeArgs(*reshape_3.args, **reshape_3.kwargs)  # type: ignore[arg-type]
+            # Skip dynamic reshapes (shape is a single Node)
+            if isinstance(reshape_3_args.shape, torch.fx.Node):
+                continue
             reshape_3_input = reshape_3_args.input
             assert isinstance(reshape_3_input, torch.fx.Node), type(reshape_3_input)
 
@@ -354,9 +369,12 @@ class RemoveRedundantReshapePattern4(PassBase):
             reshape1_args = ReshapeArgs(*reshape1.args, **reshape1.kwargs)  # type: ignore[arg-type]
             reshape1_input, size = reshape1_args.input, reshape1_args.shape
             assert isinstance(reshape1_input, torch.fx.Node), type(reshape1_input)
+            # Skip if dynamic shape (single Node or list with SymInt/Node)
+            if isinstance(size, torch.fx.Node):
+                continue
             assert isinstance(size, list), type(size)
-            for s in size:
-                assert isinstance(s, int), type(s)
+            if any(isinstance(s, (torch.SymInt, torch.fx.Node)) for s in size):
+                continue
 
             if not len(reshape1.users) == 1:
                 continue
@@ -369,9 +387,12 @@ class RemoveRedundantReshapePattern4(PassBase):
             reshape2_args = ReshapeArgs(*reshape2.args, **reshape2.kwargs)  # type: ignore[arg-type]
             reshape2_input, reshape2_size = reshape2_args.input, reshape2_args.shape
             assert isinstance(reshape2_input, torch.fx.Node), type(reshape2_input)
+            # Skip if dynamic shape (single Node or list with SymInt/Node)
+            if isinstance(reshape2_size, torch.fx.Node):
+                continue
             assert isinstance(reshape2_size, list), type(reshape2_size)
-            for s in reshape2_size:
-                assert isinstance(s, int), type(s)
+            if any(isinstance(s, (torch.SymInt, torch.fx.Node)) for s in reshape2_size):
+                continue
 
             with graph.inserting_before(reshape1):
                 fused_reshape = create_node(
@@ -418,6 +439,9 @@ class RemoveRedundantReshapePattern5(PassBase):
 
             args = ReshapeArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
             output_shape = args.shape
+            # Skip dynamic reshapes (shape is a single Node)
+            if isinstance(output_shape, torch.fx.Node):
+                continue
             input_shape = list(extract_shape(args.input))
 
             if output_shape != input_shape:

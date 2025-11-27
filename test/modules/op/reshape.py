@@ -13,8 +13,11 @@
 # limitations under the License.
 
 import torch
+from torch.export import Dim
 
 from test.modules.base import TestModuleBase
+
+from test.utils import tag
 
 # Note. tests that call `aten.reshape` or `torch.reshape` are exporeted to aten graph that has `aten.view` instead of `aten.reshape`.
 
@@ -65,3 +68,24 @@ class ReshapeTorchAPI(TestModuleBase):
 
     def get_example_inputs(self):
         return (torch.randn(2, 4, 5),), {}
+
+
+@tag.use_onert
+class ReshapeDynamicShape(TestModuleBase):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, x):
+        # Reshape to (batch, -1) where batch is dynamic
+        return x.reshape(x.shape[0], -1)
+
+    def get_example_inputs(self):
+        return (torch.randn(4, 4, 4),), {}
+
+    def get_dynamic_shapes(self):
+        batch = Dim("batch", min=2, max=128)
+        dynamic_shapes = {
+            "x": {0: batch},
+        }
+        return dynamic_shapes
+

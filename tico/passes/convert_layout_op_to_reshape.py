@@ -20,7 +20,6 @@ import torch
 from torch.export import ExportedProgram
 
 from tico.passes import ops
-from tico.serialize.circle_mapping import extract_shape
 from tico.utils import logging
 from tico.utils.graph import create_node
 from tico.utils.passes import PassBase, PassResult
@@ -45,38 +44,78 @@ class ConvertLayoutOpToReshape(PassBase):
         graph = graph_module.graph
         modified = False
 
-        def convert(node, input):
-            out_shape = list(extract_shape(node))
-
-            with graph.inserting_after(node):
-                reshape_node = create_node(
-                    graph,
-                    torch.ops.aten.reshape.default,
-                    args=(input, out_shape),
-                )
-            node.replace_all_uses_with(reshape_node, propagate_meta=True)
-
-            logger.debug(f"{node.name} is replaced with {reshape_node.name}")
-
         for node in graph.nodes:
             if not node.op == "call_function":
                 continue
 
+            reshape_node = None
+            
             if node.target in ops.aten.view:
                 view_args = ViewArgs(*node.args, **node.kwargs)
-                convert(node, view_args.input)
+                # Preserve the original size argument which may contain dynamic shapes
+                # (e.g., sym_size.int nodes, SymInt values, or -1 for inferred dimensions)
+                with graph.inserting_after(node):
+                    reshape_node = create_node(
+                        graph,
+                        torch.ops.aten.reshape.default,
+                        args=(view_args.input, view_args.size),
+                    )
                 modified = True
-                continue
+                
             elif node.target in ops.aten.unsqueeze:
                 unsqueeze_args = UnSqueezeArgs(*node.args, **node.kwargs)
-                convert(node, unsqueeze_args.input)
-                modified = True
-                continue
+                # For unsqueeze, we need to construct the output shape dynamically
+                # to preserve symbolic dimensions from the input
+                input_node = unsqueeze_args.input
+                dim = unsqueeze_args.dim
+                
+                # Get input shape - may contain symbolic dimensions
+                input_meta = input_node.meta.get("val")
+                if input_meta is not None:
+                    input_shape = list(input_meta.shape)
+                    # Build output shape by inserting 1 at the specified dimension
+                    # Preserve any symbolic dimensions (SymInt) from input
+                    output_shape = input_shape[:dim] + [1] + input_shape[dim:]
+                    
+                    with graph.inserting_after(node):
+                        reshape_node = create_node(
+                            graph,
+                            torch.ops.aten.reshape.default,
+                            args=(input_node, output_shape),
+                        )
+                    modified = True
+                
             elif node.target in ops.aten.squeeze:
                 squeeze_args = SqueezeArgs(*node.args, **node.kwargs)
-                convert(node, squeeze_args.input)
+                # For squeeze, we need to construct the output shape dynamically
+                # to preserve symbolic dimensions from the input
+                input_node = squeeze_args.input
+                dims = squeeze_args.dims
+                
+                # Get input shape - may contain symbolic dimensions
+                input_meta = input_node.meta.get("val")
+                assert input_meta is not None
+
+                input_shape = list(input_meta.shape)
+                # Remove specific dimension if it's size 1
+                for dim in dims:
+                    assert input_shape[dim] == 1
+                output_shape = []
+                for dim in range(len(input_shape)):
+                    if dim not in dims:
+                        output_shape.append(input_shape[dim])
+
+                with graph.inserting_after(node):
+                    reshape_node = create_node(
+                        graph,
+                        torch.ops.aten.reshape.default,
+                        args=(input_node, output_shape),
+                    )
                 modified = True
-                continue
+            
+            if reshape_node is not None:
+                node.replace_all_uses_with(reshape_node, propagate_meta=True)
+                logger.debug(f"{node.name} is replaced with {reshape_node.name}")
 
         graph.eliminate_dead_code()
         graph.lint()

@@ -47,16 +47,55 @@ class ReshapeVisitor(NodeVisitor):
             self._op_codes,
         )
         args = ReshapeArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
-        input = args.input
+        input_node = args.input
         size = args.shape
 
-        if isinstance(size, int):
-            raise NotYetSupportedError("scalar size conversion is not supported yet.")
+        # After PrepareReshapeDynamicShape pass, size is either:
+        # 1. A constant list/tuple (static shape)
+        # 2. A single fx.Node (dynamic shape tensor prepared by the pass)
+        
+        if isinstance(size, torch.fx.Node):
+            # Dynamic shape: size is a 1D tensor node
+            # Cast to INT32 if needed
+            size_tensor = self.graph.get_tensor(size)
+            
+            if size_tensor.type == circle.TensorType.TensorType.INT64:
+                cast_op_idx = get_op_index(
+                    circle.BuiltinOperator.BuiltinOperator.CAST, self._op_codes
+                )
+                size_i32 = self.graph.add_tensor_from_scratch(
+                    prefix=f"{size.name}_i32",
+                    shape=list(size_tensor.shape),
+                    shape_signature=list(size_tensor.shapeSignature) if size_tensor.shapeSignature else None,
+                    dtype=circle.TensorType.TensorType.INT32,
+                    source_node=size
+                )
+                cast_op = create_builtin_operator(
+                    self.graph, cast_op_idx, [size], [size_i32]
+                )
+                cast_op.builtinOptionsType = circle.BuiltinOptions.BuiltinOptions.CastOptions
+                cast_op.builtinOptions = circle.CastOptions.CastOptionsT()
+                cast_op.builtinOptions.inDataType = circle.TensorType.TensorType.INT64
+                cast_op.builtinOptions.outDataType = circle.TensorType.TensorType.INT32
+                self.graph.add_operator(cast_op)
+                size_node = size_i32
+            else:
+                size_node = size
+            
+            inputs = [input_node, size_node]
+            # size_tensor.shape[0] gives us the rank of the output tensor
+            new_shape = [-1] * size_tensor.shape[0]  # Placeholder for dynamic shape
+        else:
+            # Static shape: size is a constant list/tuple
+            if isinstance(size, int):
+                raise NotYetSupportedError("scalar size conversion is not supported yet.")
 
-        assert is_const(size), type(size)
+            assert is_const(size), type(size)
 
-        size_i32 = circle_legalize_dtype_to(size, dtype=torch.int32)
-        inputs = [input, size_i32]
+            size_i32 = circle_legalize_dtype_to(size, dtype=torch.int32)
+            inputs = [input_node, size_i32]
+            new_shape = size_i32.tolist()
+
         outputs = [node]
 
         operator = create_builtin_operator(self.graph, op_index, inputs, outputs)
@@ -66,7 +105,7 @@ class ReshapeVisitor(NodeVisitor):
             circle.BuiltinOptions.BuiltinOptions.ReshapeOptions
         )
         option = circle.ReshapeOptions.ReshapeOptionsT()
-        option.newShape = size_i32.tolist()
+        option.newShape = new_shape
 
         operator.builtinOptions = option
 
