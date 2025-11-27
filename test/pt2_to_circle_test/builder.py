@@ -211,7 +211,7 @@ class NNModuleTest(TestRunnerBase):
                     circle_result[idx] = circle_result[idx].reshape(tr.shape)
                 else:
                     # tr is scalar
-                    torch_result[idx] = torch.tensor([tr], dtype=type(cr)) # TODO Fix
+                    torch_result[idx] = torch.tensor([tr], dtype=torch.int32) # TODO Fix properly
         else:
             circle_result = infer_circle(
                 circle_model_path,

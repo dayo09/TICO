@@ -51,14 +51,14 @@ class SliceCopyVisitor(NodeVisitor):
             circle.BuiltinOperator.BuiltinOperator.STRIDED_SLICE, self._op_codes
         )
 
-        args = SliceArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
-        input = args.input
-        dim = args.dim
-        start = args.start
-        end = args.end
-        step = args.step
+        slice_args = SliceArgs(*node.args, **node.kwargs)  # type: ignore[arg-type]
+        input_ = slice_args.input
+        dim = slice_args.dim
+        start = slice_args.start
+        end = slice_args.end
+        step = slice_args.step
 
-        input_tensor: circle.Tensor.TensorT = self.graph.get_tensor(input)
+        input_tensor: circle.Tensor.TensorT = self.graph.get_tensor(input_)
         input_shape: List[int] = input_tensor.shape
 
         if start is None:
@@ -140,7 +140,7 @@ class SliceCopyVisitor(NodeVisitor):
         stride_shape[dim] = step
         stride_shape_tensor = torch.as_tensor(stride_shape, dtype=torch.int32)
 
-        inputs = [input, begin_shape_tensor, end_shape_tensor, stride_shape_tensor]
+        inputs = [input_, begin_shape_tensor, end_shape_tensor, stride_shape_tensor]
         outputs = [node]
 
         operator = create_builtin_operator(self.graph, op_index, inputs, outputs)
