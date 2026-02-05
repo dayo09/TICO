@@ -135,3 +135,33 @@ class IndexTensorWithSlice(TestModuleBase):
             torch.randn(3, 3, 6, 6),
             torch.randn(3, 3, 6, 6),
         ), {}
+
+class SimpleIndexCopy(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, keys, key_states):
+        cache_position = torch.arange(key_states.shape[-2])
+        return keys.index_copy_(2, cache_position, key_states)
+
+    def get_example_inputs(self):
+        batch, num_heads, max_cache_len, head_dim = (1, 20, 448, 64)
+        keys = torch.randn(batch, num_heads, max_cache_len, head_dim)
+        key_states = torch.randn(batch, num_heads, 1, head_dim)
+        return (keys, key_states), {}
+
+
+class SimpleIndexCopyUpdate(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, keys, key_states):
+        cache_position = torch.arange(key_states.shape[-2])
+        keys[:, :, cache_position] = key_states
+        return keys
+
+    def get_example_inputs(self):
+        batch, num_heads, max_cache_len, head_dim = (1, 20, 448, 64)
+        keys = torch.randn(batch, num_heads, max_cache_len, head_dim)
+        key_states = torch.randn(batch, num_heads, 1, head_dim)
+        return (keys, key_states), {}
