@@ -41,6 +41,7 @@ from tico.quantization.wrapq.wrappers.quant_elementwise import (
     QuantSigmoid,
     QuantTanh,
 )
+from tico.quantization.wrapq.utils.version import has_transformers_for
 from tico.quantization.wrapq.wrappers.quant_module_base import QuantModuleBase
 from tico.quantization.wrapq.wrappers.registry import lookup
 
@@ -55,9 +56,9 @@ ACTIVATIONS: List[
     (torch.nn.GELU(), torch.nn.functional.gelu, QuantGELU),
 ]
 
-if importlib.util.find_spec("transformers") is not None:
+try:
     import transformers
-
+    from transformers.activations import GELUTanh
     ACTIVATIONS.append(
         (
             transformers.activations.GELUTanh(),
@@ -65,8 +66,8 @@ if importlib.util.find_spec("transformers") is not None:
             QuantGELUTanh,
         )
     )
-else:
-    print(f"\ntransformers not installed — skipping GELUTanh tests")
+except ImportError:
+    print(f"\nRequired transformers not installed — skipping GELUTanh tests")
 
 
 class TestElementwiseWrappers(unittest.TestCase):
