@@ -1,9 +1,10 @@
-import importlib.util
 import importlib.metadata
+import importlib.util
+
 from packaging import version
 
 MIN_VERSIONS = {
-    "llama": "4.36.0", # transformers==4.31.0 supports llama but without layer_idx and position_embeddings feature
+    "llama": "4.36.0",  # transformers==4.31.0 supports llama but without layer_idx and position_embeddings feature
     "qwen3-vl": "4.57.0",
 }
 
@@ -20,5 +21,5 @@ def has_transformers_for(model_type: str) -> bool:
 
     if version.parse(current_version) >= version.parse(required_version):
         return True
-        
+
     return False

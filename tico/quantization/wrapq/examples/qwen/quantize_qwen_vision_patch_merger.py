@@ -28,7 +28,7 @@ from tico.quantization.wrapq.utils.version import has_transformers_for
 
 # Check if transformers is available
 
-if not has_transformers_for('qwen3-vl'):
+if not has_transformers_for("qwen3-vl"):
     print(
         "Error: transformers package not installed. Cannot test Qwen3VLVisionPatchMerger."
     )

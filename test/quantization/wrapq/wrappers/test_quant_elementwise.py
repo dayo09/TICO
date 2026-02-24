@@ -32,6 +32,7 @@ import torch
 from tico.quantization.config.ptq import PTQConfig
 from tico.quantization.wrapq.dtypes import DType
 from tico.quantization.wrapq.mode import Mode
+from tico.quantization.wrapq.utils.version import has_transformers_for
 from tico.quantization.wrapq.wrappers.ptq_wrapper import PTQWrapper
 from tico.quantization.wrapq.wrappers.quant_elementwise import (
     QuantElementwise,
@@ -41,7 +42,6 @@ from tico.quantization.wrapq.wrappers.quant_elementwise import (
     QuantSigmoid,
     QuantTanh,
 )
-from tico.quantization.wrapq.utils.version import has_transformers_for
 from tico.quantization.wrapq.wrappers.quant_module_base import QuantModuleBase
 from tico.quantization.wrapq.wrappers.registry import lookup
 
@@ -59,6 +59,7 @@ ACTIVATIONS: List[
 try:
     import transformers
     from transformers.activations import GELUTanh
+
     ACTIVATIONS.append(
         (
             transformers.activations.GELUTanh(),
