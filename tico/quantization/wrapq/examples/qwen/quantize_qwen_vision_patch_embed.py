@@ -104,7 +104,7 @@ def main():
     # Convert to Circle format
     # example_inputs shape: (batch_size, in_channels, depth, height, width)
     example_inputs = (torch.randn(2, 3, 8, 224, 224),)
-    circle_model = tico.convert(quantized_model, example_inputs)
+    circle_model = tico.convert(quantized_model, example_inputs, verbose = True)
 
     # Save the Circle model
     filename = "quantized_vision_patch_embed.circle"

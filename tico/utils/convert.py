@@ -328,7 +328,11 @@ def convert(
     dynamic_shapes: Optional[dict] = None,
     strict: bool = True,
     config: CompileConfigBase = get_default_config(),
+    verbose: bool = False,
 ) -> CircleModel:
+    if verbose:
+        os.environ["TICO_LOG"] = "4"
+    
     if hasattr(mod, "training") and mod.training:
         logger = logging.getLogger(__name__)
         logger.fatal(
