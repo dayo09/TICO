@@ -24,6 +24,7 @@ from tico.passes.cast_aten_where_arg_type import CastATenWhereArgType
 from tico.passes.cast_clamp_mixed_type_args import CastClampMixedTypeArgs
 from tico.passes.cast_mixed_type_args import CastMixedTypeArgs
 from tico.passes.const_prop_pass import ConstPropPass
+from tico.passes.quant_const_prop_pass import QuantConstPropPass
 from tico.passes.convert_conv1d_to_conv2d import ConvertConv1dToConv2d
 from tico.passes.convert_conv3d_to_conv2d import ConvertConv3dToConv2d
 from tico.passes.convert_expand_to_slice_cat import ConvertExpandToSliceCat
@@ -305,6 +306,7 @@ def convert_exported_module_to_circle(
                 PropagateQParamBackward(),
                 QuantizeBias(),
                 InsertQuantizeOnDtypeMismatch(),
+                QuantConstPropPass(),
             ]
         )
         quantize_graph.run(exported_program)
