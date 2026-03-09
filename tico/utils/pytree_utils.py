@@ -1,134 +1,401 @@
-import threading
+# Copyright (c) 2025 Samsung Electronics Co., Ltd. All Rights Reserved
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import Any, Dict, Tuple
 
 import torch
+import torch.fx._pytree as fx_pytree
+import torch.utils._pytree as pytree
 from packaging.version import Version
 
 from tico.utils import logging
 from tico.utils.installed_packages import is_transformers_installed
 
-__all__ = ["register_dynamic_cache"]
+__all__ = [
+    "register_dynamic_cache",
+    "register_static_cache",
+    "register_dynamic_layer",
+    "register_static_layer",
+    "register_encoder_decoder_cache",
+]
+
+##################################################################################
+# All _flatten_* / _unflatten_* helpers are defined at module scope (not inside
+# functions) so that torch pytree serialization can locate them by name.
+#
+# Convention for every cache type:
+#   _flatten_<type>           -> (children, aux_data)   [main pytree API]
+#   _unflatten_<type>         -> reconstructed object
+#   _flatten_with_keys_<type> -> keyed children list     [for pytree.register_pytree_node]
+#   _flatten_<type>_for_fx    -> flat list                [for fx_pytree.register_pytree_flatten_spec]
+##################################################################################
+
+
+# ---------------------------------------------------------------------------
+# StaticCache
+# ---------------------------------------------------------------------------
+
+def _flatten_static_cache(cache) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+    children = (cache.layers,)
+    aux_data = {
+        "layer_class_to_replicate": getattr(cache, "layer_class_to_replicate", None),
+        "offloading": getattr(cache, "offloading", False),
+    }
+    return children, aux_data
+
+
+def _unflatten_static_cache(children: Tuple[Any, ...], aux_data: Dict[str, Any]):
+    from transformers.cache_utils import StaticCache
+
+    instance = StaticCache.__new__(StaticCache)
+    (instance.layers,) = children
+    for key, value in aux_data.items():
+        setattr(instance, key, value)
+    return instance
+
+
+def _flatten_with_keys_static_cache(cache):
+    children, aux_data = _flatten_static_cache(cache)
+    return [(pytree.MappingKeyPath("layers"), children[0])], aux_data
+
+
+def _flatten_static_cache_for_fx(cache, spec):
+    children, _ = _flatten_static_cache(cache)
+    return list(children)
+
+
+def register_static_cache():
+    from transformers.cache_utils import StaticCache
+
+    try:
+        pytree.register_pytree_node(
+            StaticCache,
+            _flatten_static_cache,
+            _unflatten_static_cache,
+            serialized_type_name=f"{StaticCache.__module__}.{StaticCache.__name__}",
+            flatten_with_keys_fn=_flatten_with_keys_static_cache,
+        )
+        fx_pytree.register_pytree_flatten_spec(StaticCache, _flatten_static_cache_for_fx)
+    except ValueError as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"StaticCache is already registered as pytree flattenable. {e}")
+
+
+# ---------------------------------------------------------------------------
+# StaticLayer
+# ---------------------------------------------------------------------------
+
+def _flatten_static_layer(layer) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+    """Split a StaticLayer into (tensor children, static metadata)."""
+    if not layer.is_initialized:
+        raise ValueError(
+            f"{layer} cannot be flattened. StaticLayer must be initialized "
+            "with tensors of a specific shape before use with torch.export."
+        )
+    children = (layer.keys, layer.values)
+    aux_data: Dict[str, Any] = {
+        "max_cache_len": layer.max_cache_len,
+        "is_initialized": layer.is_initialized,
+        "dtype": layer.keys.dtype,
+        "device": layer.keys.device,
+        "max_batch_size": layer.max_batch_size,
+        "num_heads": layer.num_heads,
+        "k_head_dim": layer.k_head_dim,
+        "v_head_dim": layer.v_head_dim,
+    }
+    return children, aux_data
+
+
+def _unflatten_static_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any]):
+    """Reconstruct a StaticLayer from flattened data."""
+    from transformers.cache_utils import StaticLayer
+
+    keys, values = children
+    obj = StaticLayer(max_cache_len=aux_data["max_cache_len"])
+    obj.is_initialized = aux_data["is_initialized"]
+    obj.keys = keys
+    obj.values = values
+    obj.dtype = aux_data["dtype"]
+    obj.device = aux_data["device"]
+    obj.max_batch_size = aux_data["max_batch_size"]
+    obj.num_heads = aux_data["num_heads"]
+    obj.k_head_dim = aux_data["k_head_dim"]
+    obj.v_head_dim = aux_data["v_head_dim"]
+    return obj
+
+
+def _flatten_with_keys_static_layer(layer):
+    children, aux_data = _flatten_static_layer(layer)
+    return [
+        (pytree.MappingKeyPath("keys"), children[0]),
+        (pytree.MappingKeyPath("values"), children[1]),
+    ], aux_data
+
+
+def _flatten_static_layer_for_fx(layer, spec):
+    children, _ = _flatten_static_layer(layer)
+    return list(children)
+
+
+def register_static_layer():
+    from transformers.cache_utils import StaticLayer
+
+    try:
+        pytree.register_pytree_node(
+            StaticLayer,
+            _flatten_static_layer,
+            _unflatten_static_layer,
+            serialized_type_name=f"{StaticLayer.__module__}.{StaticLayer.__name__}",
+            flatten_with_keys_fn=_flatten_with_keys_static_layer,
+        )
+        fx_pytree.register_pytree_flatten_spec(StaticLayer, _flatten_static_layer_for_fx)
+    except ValueError as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"StaticLayer is already registered as pytree flattenable. {e}")
+
+
+# ---------------------------------------------------------------------------
+# DynamicLayer
+# ---------------------------------------------------------------------------
+
+def _flatten_dynamic_layer(layer) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+    if not layer.is_initialized:
+        raise ValueError(
+            f"{layer} cannot be flattened. DynamicLayer must be initialized "
+            "with tensors of a specific shape before use with torch.export."
+        )
+    children = (layer.keys, layer.values)
+    aux_data: Dict[str, Any] = {
+        "is_initialized": layer.is_initialized,
+        "dtype": layer.keys.dtype,
+        "device": layer.keys.device,
+    }
+    return children, aux_data
+
+
+def _unflatten_dynamic_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any]):
+    from transformers.cache_utils import DynamicLayer
+
+    keys, values = children
+    obj = DynamicLayer()
+    obj.keys = keys
+    obj.values = values
+    obj.is_initialized = aux_data["is_initialized"]
+    obj.dtype = aux_data["dtype"]
+    obj.device = aux_data["device"]
+    return obj
+
+
+def _flatten_with_keys_dynamic_layer(layer):
+    children, aux_data = _flatten_dynamic_layer(layer)
+    return [
+        (pytree.MappingKeyPath("keys"), children[0]),
+        (pytree.MappingKeyPath("values"), children[1]),
+    ], aux_data
+
+
+def _flatten_dynamic_layer_for_fx(layer, spec):
+    children, _ = _flatten_dynamic_layer(layer)
+    return list(children)
+
+
+def register_dynamic_layer():
+    from transformers.cache_utils import DynamicLayer
+
+    try:
+        pytree.register_pytree_node(
+            DynamicLayer,
+            _flatten_dynamic_layer,
+            _unflatten_dynamic_layer,
+            serialized_type_name=f"{DynamicLayer.__module__}.{DynamicLayer.__name__}",
+            flatten_with_keys_fn=_flatten_with_keys_dynamic_layer,
+        )
+        fx_pytree.register_pytree_flatten_spec(DynamicLayer, _flatten_dynamic_layer_for_fx)
+    except ValueError as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(f"DynamicLayer is already registered as pytree flattenable. {e}")
+
+
+# ---------------------------------------------------------------------------
+# DynamicCache
+# ---------------------------------------------------------------------------
+
+def _flatten_dynamic_cache(cache) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+    children = (cache.layers,)
+    aux_data = {
+        "layer_class_to_replicate": getattr(cache, "layer_class_to_replicate", None),
+        "offloading": getattr(cache, "offloading", False),
+    }
+    return children, aux_data
+
+
+def _unflatten_dynamic_cache(children: Tuple[Any, ...], aux_data: Dict[str, Any]):
+    from transformers.cache_utils import DynamicCache
+
+    instance = DynamicCache.__new__(DynamicCache)
+    (instance.layers,) = children
+    for key, value in aux_data.items():
+        setattr(instance, key, value)
+    return instance
+
+
+def _flatten_with_keys_dynamic_cache(cache):
+    children, aux_data = _flatten_dynamic_cache(cache)
+    return [(pytree.MappingKeyPath("layers"), children[0])], aux_data
+
+
+def _flatten_dynamic_cache_for_fx(cache, spec):
+    children, _ = _flatten_dynamic_cache(cache)
+    return list(children)
+
+
+# Legacy flatten/unflatten for transformers < 4.50.0, which used key_cache /
+# value_cache attributes instead of the Layer-based cache.layers structure.
+def _flatten_dynamic_cache_legacy(cache) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+    children = (cache.key_cache, cache.value_cache)
+    aux_data: Dict[str, Any] = {}
+    return children, aux_data
+
+
+def _unflatten_dynamic_cache_legacy(children: Tuple[Any, ...], aux_data: Dict[str, Any]):
+    from transformers.cache_utils import DynamicCache
+
+    key_cache, value_cache = children
+    cache = DynamicCache()
+    cache.key_cache = key_cache
+    cache.value_cache = value_cache
+    return cache
+
+
+def _flatten_with_keys_dynamic_cache_legacy(cache):
+    children, aux_data = _flatten_dynamic_cache_legacy(cache)
+    return [
+        (pytree.MappingKeyPath("key_cache"), children[0]),
+        (pytree.MappingKeyPath("value_cache"), children[1]),
+    ], aux_data
+
+
+def _flatten_dynamic_cache_for_fx_legacy(cache, spec):
+    children, _ = _flatten_dynamic_cache_legacy(cache)
+    return list(children)
 
 
 def register_dynamic_cache():
-    PyTreeRegistryHelper().register_dynamic_cache()
+    """Register DynamicCache as a pytree node.
 
+    Transformers >= 4.50.0 introduced Layer-based caches (cache.layers) and
+    also began registering DynamicCache itself.  We re-register here with our
+    own flatten/unflatten pair so that the Layer-based structure is handled
+    consistently across all transformers versions that TICO supports.
 
-class PyTreeRegistryHelper:
+    For transformers < 4.50.0 the legacy key_cache / value_cache attributes
+    are used instead.  A ValueError from a prior registration is silently
+    ignored in either case.
     """
-    Thread-safe singleton helper class for registering custom PyTree nodes.
+    if not is_transformers_installed:  # type: ignore[truthy-function]
+        raise ImportError("transformers package is not installed")
 
-    This class provides functionality to register DynamicCache as a PyTree node
-    for torch.export compatibility. This registration is only needed for
-    transformers versions below 4.50.0.
+    import transformers
+    from transformers.cache_utils import DynamicCache
 
-    Thread Safety:
-    - Uses a class-level threading.Lock() to ensure thread-safe singleton instantiation
-    - Uses the same lock to protect the registration process from concurrent calls
-    """
-
-    _instance = None  # Class variable to hold the singleton instance
-    _has_called = False  # Flag to track if registration has been performed
-    _lock = threading.Lock()  # Class-level lock for thread-safe operations
-
-    def __init__(self):
-        """Private constructor to prevent direct instantiation"""
-        pass
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Thread-safe singleton instance creation using double-checked locking pattern.
-
-        Returns:
-            PyTreeRegistryHelper: The singleton instance of this class
-        """
-        if not cls._instance:
-            with cls._lock:  # Acquire lock for thread-safe instantiation
-                if not cls._instance:  # Double-check after acquiring lock
-                    cls._instance = super().__new__(cls)
-        return cls._instance
-
-    def register_dynamic_cache(self):
-        """
-        Registers DynamicCache as a PyTree node for torch.export compatibility.
-
-        This method is thread-safe and idempotent - it will only perform the
-        registration once, even if called multiple times from different threads.
-
-        Note:
-            This registration is only needed for transformers versions below 4.50.0.
-
-        Raises:
-            ImportError: If transformers package is not installed
-        """
-        with self._lock:  # Acquire lock for thread-safe registration
-            if self.__class__._has_called:
-                logger = logging.getLogger(__name__)
-                logger.debug("register_dynamic_cache already called, skipping")
-                return
-
-            self.__class__._has_called = True
+    if Version(transformers.__version__) < Version("4.50.0"):
+        try:
+            pytree.register_pytree_node(
+                DynamicCache,
+                _flatten_dynamic_cache_legacy,
+                _unflatten_dynamic_cache_legacy,
+                serialized_type_name=f"{DynamicCache.__module__}.{DynamicCache.__name__}",
+                flatten_with_keys_fn=_flatten_with_keys_dynamic_cache_legacy,
+            )
+            fx_pytree.register_pytree_flatten_spec(
+                DynamicCache, _flatten_dynamic_cache_for_fx_legacy
+            )
+        except ValueError as e:
             logger = logging.getLogger(__name__)
-            logger.info("Registering DynamicCache PyTree node")
+            logger.warning(
+                f"DynamicCache is already registered as pytree flattenable. {e}"
+            )
+        return
 
-        if not is_transformers_installed:  # type: ignore[truthy-function]
-            raise ImportError("transformers package is not installed")
-
-        import transformers
-
-        HAS_TRANSFORMERS_LESS_4_50_0 = Version(transformers.__version__) < Version(
-            "4.50.0"
-        )
-        if not HAS_TRANSFORMERS_LESS_4_50_0:
-            return
-
-        from transformers.cache_utils import DynamicCache
-
-        def _flatten_dynamic_cache(dynamic_cache: DynamicCache):
-            if not isinstance(dynamic_cache, DynamicCache):
-                raise RuntimeError(
-                    "This pytree flattening function should only be applied to DynamicCache"
-                )
-            HAS_TORCH_2_6_0 = Version(torch.__version__) >= Version("2.6.0")
-            if not HAS_TORCH_2_6_0:
-                logger = logging.getLogger(__name__)
-                logger.warning_once(
-                    "DynamicCache + torch.export is tested on torch 2.6.0+ and may not work on earlier versions."
-                )
-            dictionary = {
-                "key_cache": getattr(dynamic_cache, "key_cache"),
-                "value_cache": getattr(dynamic_cache, "value_cache"),
-            }
-            return torch.utils._pytree._dict_flatten(dictionary)
-
-        def _flatten_with_keys_dynamic_cache(dynamic_cache: DynamicCache):
-            dictionary = {
-                "key_cache": getattr(dynamic_cache, "key_cache"),
-                "value_cache": getattr(dynamic_cache, "value_cache"),
-            }
-            return torch.utils._pytree._dict_flatten_with_keys(dictionary)
-
-        def _unflatten_dynamic_cache(values, context: torch.utils._pytree.Context):
-            dictionary = torch.utils._pytree._dict_unflatten(values, context)
-            cache = DynamicCache()
-            for k, v in dictionary.items():
-                setattr(cache, k, v)
-            return cache
-
-        def _flatten_dynamic_cache_for_fx(cache, spec):
-            dictionary = {
-                "key_cache": getattr(cache, "key_cache"),
-                "value_cache": getattr(cache, "value_cache"),
-            }
-            return torch.fx._pytree._dict_flatten_spec(dictionary, spec)
-
-        torch.utils._pytree.register_pytree_node(
+    try:
+        pytree.register_pytree_node(
             DynamicCache,
             _flatten_dynamic_cache,
             _unflatten_dynamic_cache,
             serialized_type_name=f"{DynamicCache.__module__}.{DynamicCache.__name__}",
             flatten_with_keys_fn=_flatten_with_keys_dynamic_cache,
         )
-        # TODO: This won't be needed in torch 2.7+.
-        torch.fx._pytree.register_pytree_flatten_spec(
+        fx_pytree.register_pytree_flatten_spec(
             DynamicCache, _flatten_dynamic_cache_for_fx
+        )
+    except ValueError as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"DynamicCache is already registered as pytree flattenable. {e}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# EncoderDecoderCache
+# ---------------------------------------------------------------------------
+
+def _flatten_encoder_decoder_cache(cache) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
+    children = (cache.self_attention_cache, cache.cross_attention_cache)
+    aux_data: Dict[str, Any] = {}
+    return children, aux_data
+
+
+def _unflatten_encoder_decoder_cache(
+    children: Tuple[Any, ...], aux_data: Dict[str, Any]
+):
+    from transformers.cache_utils import EncoderDecoderCache
+
+    self_cache, cross_cache = children
+    return EncoderDecoderCache(self_cache, cross_cache)
+
+
+def _flatten_with_keys_encoder_decoder_cache(cache):
+    children, aux_data = _flatten_encoder_decoder_cache(cache)
+    return [
+        (pytree.MappingKeyPath("self_attention_cache"), children[0]),
+        (pytree.MappingKeyPath("cross_attention_cache"), children[1]),
+    ], aux_data
+
+
+def _flatten_encoder_decoder_cache_for_fx(cache, spec):
+    children, _ = _flatten_encoder_decoder_cache(cache)
+    return list(children)
+
+
+def register_encoder_decoder_cache():
+    from transformers.cache_utils import EncoderDecoderCache
+
+    try:
+        pytree.register_pytree_node(
+            EncoderDecoderCache,
+            _flatten_encoder_decoder_cache,
+            _unflatten_encoder_decoder_cache,
+            serialized_type_name=(
+                f"{EncoderDecoderCache.__module__}.{EncoderDecoderCache.__name__}"
+            ),
+            flatten_with_keys_fn=_flatten_with_keys_encoder_decoder_cache,
+        )
+        fx_pytree.register_pytree_flatten_spec(
+            EncoderDecoderCache, _flatten_encoder_decoder_cache_for_fx
+        )
+    except ValueError as e:
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"EncoderDecoderCache is already registered as pytree flattenable. {e}"
         )
