@@ -17,7 +17,6 @@ from typing import Any, Dict, Tuple
 import torch
 import torch.fx._pytree as fx_pytree
 import torch.utils._pytree as pytree
-from packaging.version import Version
 
 from tico.utils import logging
 from tico.utils.installed_packages import is_transformers_installed
@@ -76,7 +75,18 @@ def _flatten_static_cache_for_fx(cache, spec):
 
 
 def register_static_cache():
-    from transformers.cache_utils import StaticCache
+    # StaticCache uses a layers-based structure only when StaticLayer is available
+    # (transformers >= ~4.57).  On older versions _flatten_static_cache would
+    # access a non-existent .layers attribute, so we skip registration.
+    try:
+        from transformers.cache_utils import StaticCache, StaticLayer  # noqa: F401
+    except ImportError:
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            "StaticCache / StaticLayer not available in this transformers version; "
+            "skipping StaticCache pytree registration."
+        )
+        return
 
     try:
         pytree.register_pytree_node(
@@ -149,7 +159,15 @@ def _flatten_static_layer_for_fx(layer, spec):
 
 
 def register_static_layer():
-    from transformers.cache_utils import StaticLayer
+    try:
+        from transformers.cache_utils import StaticLayer
+    except ImportError:
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            "StaticLayer not available in this transformers version; "
+            "skipping StaticLayer pytree registration."
+        )
+        return
 
     try:
         pytree.register_pytree_node(
@@ -211,7 +229,15 @@ def _flatten_dynamic_layer_for_fx(layer, spec):
 
 
 def register_dynamic_layer():
-    from transformers.cache_utils import DynamicLayer
+    try:
+        from transformers.cache_utils import DynamicLayer
+    except ImportError:
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            "DynamicLayer not available in this transformers version; "
+            "skipping DynamicLayer pytree registration."
+        )
+        return
 
     try:
         pytree.register_pytree_node(
@@ -260,8 +286,9 @@ def _flatten_dynamic_cache_for_fx(cache, spec):
     return list(children)
 
 
-# Legacy flatten/unflatten for transformers < 4.50.0, which used key_cache /
-# value_cache attributes instead of the Layer-based cache.layers structure.
+# Legacy flatten/unflatten for transformers versions that do not have
+# DynamicLayer (e.g. <= 4.52.x), which store tensors directly in
+# key_cache / value_cache instead of the Layer-based cache.layers structure.
 def _flatten_dynamic_cache_legacy(cache) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
     children = (cache.key_cache, cache.value_cache)
     aux_data: Dict[str, Any] = {}
@@ -294,22 +321,37 @@ def _flatten_dynamic_cache_for_fx_legacy(cache, spec):
 def register_dynamic_cache():
     """Register DynamicCache as a pytree node.
 
-    Transformers >= 4.50.0 introduced Layer-based caches (cache.layers) and
-    also began registering DynamicCache itself.  We re-register here with our
-    own flatten/unflatten pair so that the Layer-based structure is handled
-    consistently across all transformers versions that TICO supports.
+    Two layouts exist across transformers versions:
 
-    For transformers < 4.50.0 the legacy key_cache / value_cache attributes
-    are used instead.  A ValueError from a prior registration is silently
-    ignored in either case.
+    * **Layer-based** (newer, requires ``DynamicLayer`` to be importable):
+      ``cache.layers`` is a list of ``DynamicLayer`` objects; each layer
+      holds ``keys`` and ``values`` tensors.  Both ``DynamicCache`` and
+      ``DynamicLayer`` must be registered as pytree nodes for
+      ``torch.export`` to trace through the cache.
+
+    * **Legacy** (older, e.g. transformers <= 4.52.x):
+      The cache stores tensors directly in ``cache.key_cache`` and
+      ``cache.value_cache`` lists.  No ``DynamicLayer`` class exists.
+
+    The correct layout is detected by checking whether ``DynamicLayer`` can
+    be imported rather than by comparing version strings, which have proven
+    unreliable across patch releases.
     """
     if not is_transformers_installed:  # type: ignore[truthy-function]
         raise ImportError("transformers package is not installed")
 
-    import transformers
     from transformers.cache_utils import DynamicCache
 
-    if Version(transformers.__version__) < Version("4.50.0"):
+    # Feature-detect the Layer-based layout.
+    try:
+        from transformers.cache_utils import DynamicLayer as _DL  # noqa: F401
+
+        _has_dynamic_layer = True
+    except ImportError:
+        _has_dynamic_layer = False
+
+    if not _has_dynamic_layer:
+        # Legacy layout: flatten key_cache / value_cache directly.
         try:
             pytree.register_pytree_node(
                 DynamicCache,

@@ -12,18 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""E2E test: TinyLlama in decode mode with a DynamicCache (transformers >= 4.50.0).
+"""E2E test: TinyLlama in decode mode with a DynamicCache.
 
 Scenario
 --------
 Simulates the token-generation (decode) step where a previously-computed
 key/value cache is fed back into the model alongside a single new token.
 
-The DynamicCache uses the Layer-based internal structure introduced in
-transformers 4.50.0 (cache.layers list of DynamicLayer objects).  Both
-DynamicCache and DynamicLayer must be registered as pytree nodes before
-torch.export can trace through them; this is done via register_dynamic_cache()
-and register_dynamic_layer() from tico.utils.pytree_utils.
+register_dynamic_cache() selects the correct pytree flatten strategy
+automatically based on the installed transformers version:
+
+* transformers with DynamicLayer (newer): Layer-based layout (cache.layers)
+* transformers without DynamicLayer (e.g. 4.52.x): legacy layout
+  (cache.key_cache / cache.value_cache)
+
+register_dynamic_layer() is also called so that if the Layer-based layout is
+in use, DynamicLayer objects inside the cache are also pytree-traversable.
+It is a safe no-op when DynamicLayer does not exist in the installed
+transformers version.
 """
 
 import torch
@@ -50,8 +56,9 @@ class TinyLlamaWithDynamicCache(TestModuleBase):
         self.rtol = 1e-4
         self.atol = 1e-4
 
-        # Register both DynamicCache (container) and DynamicLayer (per-layer
-        # slot) so that torch.export / pytree can trace through them.
+        # register_dynamic_cache picks the right flatten strategy for the
+        # installed transformers version automatically.
+        # register_dynamic_layer is a no-op when DynamicLayer doesn't exist.
         register_dynamic_cache()
         register_dynamic_layer()
 
