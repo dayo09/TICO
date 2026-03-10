@@ -24,3 +24,5 @@ test/reports
 
 # Dump files
 .tico_tmp/
+probe_cache.py
+run_probe.sh
