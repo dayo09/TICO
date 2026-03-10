@@ -66,7 +66,7 @@ def _unflatten_static_cache(children: Tuple[Any, ...], aux_data: Dict[str, Any])
 
 def _flatten_with_keys_static_cache(cache):
     children, aux_data = _flatten_static_cache(cache)
-    return [(pytree.MappingKeyPath("layers"), children[0])], aux_data
+    return [(pytree.MappingKey("layers"), children[0])], aux_data
 
 
 def _flatten_static_cache_for_fx(cache, spec):
@@ -108,7 +108,8 @@ def register_static_cache():
 
 def _flatten_static_layer(layer) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
     """Split a StaticLayer into (tensor children, static metadata)."""
-    if not layer.is_initialized:
+    is_initialized = getattr(layer, "is_initialized", True)
+    if not is_initialized:
         raise ValueError(
             f"{layer} cannot be flattened. StaticLayer must be initialized "
             "with tensors of a specific shape before use with torch.export."
@@ -116,7 +117,7 @@ def _flatten_static_layer(layer) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
     children = (layer.keys, layer.values)
     aux_data: Dict[str, Any] = {
         "max_cache_len": layer.max_cache_len,
-        "is_initialized": layer.is_initialized,
+        "is_initialized": is_initialized,
         "dtype": layer.keys.dtype,
         "device": layer.keys.device,
         "max_batch_size": layer.max_batch_size,
@@ -133,7 +134,8 @@ def _unflatten_static_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any])
 
     keys, values = children
     obj = StaticLayer(max_cache_len=aux_data["max_cache_len"])
-    obj.is_initialized = aux_data["is_initialized"]
+    if hasattr(obj, "is_initialized"):
+        obj.is_initialized = aux_data["is_initialized"]
     obj.keys = keys
     obj.values = values
     obj.dtype = aux_data["dtype"]
@@ -148,8 +150,8 @@ def _unflatten_static_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any])
 def _flatten_with_keys_static_layer(layer):
     children, aux_data = _flatten_static_layer(layer)
     return [
-        (pytree.MappingKeyPath("keys"), children[0]),
-        (pytree.MappingKeyPath("values"), children[1]),
+        (pytree.MappingKey("keys"), children[0]),
+        (pytree.MappingKey("values"), children[1]),
     ], aux_data
 
 
@@ -166,6 +168,17 @@ def register_static_layer():
         logger.debug(
             "StaticLayer not available in this transformers version; "
             "skipping StaticLayer pytree registration."
+        )
+        return
+
+    # In transformers 4.56.x StaticLayer exists but uses a lazy-initialisation
+    # design without the keys/values/is_initialized interface our flatten
+    # functions rely on.  Guard against that by checking for the attribute.
+    if not hasattr(StaticLayer, "is_initialized"):
+        logger = logging.getLogger(__name__)
+        logger.debug(
+            "StaticLayer in this transformers version lacks the expected "
+            "keys/values/is_initialized interface; skipping registration."
         )
         return
 
@@ -188,14 +201,17 @@ def register_static_layer():
 # ---------------------------------------------------------------------------
 
 def _flatten_dynamic_layer(layer) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-    if not layer.is_initialized:
+    # `is_initialized` was introduced in transformers 4.57+; it is absent in
+    # 4.56.x where DynamicLayer unconditionally stores keys/values after update().
+    is_initialized = getattr(layer, "is_initialized", True)
+    if not is_initialized:
         raise ValueError(
             f"{layer} cannot be flattened. DynamicLayer must be initialized "
             "with tensors of a specific shape before use with torch.export."
         )
     children = (layer.keys, layer.values)
     aux_data: Dict[str, Any] = {
-        "is_initialized": layer.is_initialized,
+        "is_initialized": is_initialized,
         "dtype": layer.keys.dtype,
         "device": layer.keys.device,
     }
@@ -209,7 +225,9 @@ def _unflatten_dynamic_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any]
     obj = DynamicLayer()
     obj.keys = keys
     obj.values = values
-    obj.is_initialized = aux_data["is_initialized"]
+    # Only restore is_initialized when the attribute exists in this version.
+    if hasattr(obj, "is_initialized"):
+        obj.is_initialized = aux_data["is_initialized"]
     obj.dtype = aux_data["dtype"]
     obj.device = aux_data["device"]
     return obj
@@ -218,8 +236,8 @@ def _unflatten_dynamic_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any]
 def _flatten_with_keys_dynamic_layer(layer):
     children, aux_data = _flatten_dynamic_layer(layer)
     return [
-        (pytree.MappingKeyPath("keys"), children[0]),
-        (pytree.MappingKeyPath("values"), children[1]),
+        (pytree.MappingKey("keys"), children[0]),
+        (pytree.MappingKey("values"), children[1]),
     ], aux_data
 
 
@@ -278,7 +296,7 @@ def _unflatten_dynamic_cache(children: Tuple[Any, ...], aux_data: Dict[str, Any]
 
 def _flatten_with_keys_dynamic_cache(cache):
     children, aux_data = _flatten_dynamic_cache(cache)
-    return [(pytree.MappingKeyPath("layers"), children[0])], aux_data
+    return [(pytree.MappingKey("layers"), children[0])], aux_data
 
 
 def _flatten_dynamic_cache_for_fx(cache, spec):
@@ -308,8 +326,8 @@ def _unflatten_dynamic_cache_legacy(children: Tuple[Any, ...], aux_data: Dict[st
 def _flatten_with_keys_dynamic_cache_legacy(cache):
     children, aux_data = _flatten_dynamic_cache_legacy(cache)
     return [
-        (pytree.MappingKeyPath("key_cache"), children[0]),
-        (pytree.MappingKeyPath("value_cache"), children[1]),
+        (pytree.MappingKey("key_cache"), children[0]),
+        (pytree.MappingKey("value_cache"), children[1]),
     ], aux_data
 
 
@@ -410,8 +428,8 @@ def _unflatten_encoder_decoder_cache(
 def _flatten_with_keys_encoder_decoder_cache(cache):
     children, aux_data = _flatten_encoder_decoder_cache(cache)
     return [
-        (pytree.MappingKeyPath("self_attention_cache"), children[0]),
-        (pytree.MappingKeyPath("cross_attention_cache"), children[1]),
+        (pytree.MappingKey("self_attention_cache"), children[0]),
+        (pytree.MappingKey("cross_attention_cache"), children[1]),
     ], aux_data
 
 
