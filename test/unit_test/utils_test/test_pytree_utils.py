@@ -53,9 +53,13 @@ def _roundtrip(obj):
 @unittest.skipIf(_SKIP, _SKIP_REASON)
 class TestRegisterDynamicCache(unittest.TestCase):
     def setUp(self):
-        from tico.utils.pytree_utils import register_dynamic_cache
+        from tico.utils.pytree_utils import (
+            register_dynamic_cache,
+            register_dynamic_layer,
+        )
 
         register_dynamic_cache()
+        register_dynamic_layer()
 
     def _make_cache(self):
         import transformers
@@ -168,7 +172,10 @@ class TestRegisterStaticLayer(unittest.TestCase):
 
         from transformers.cache_utils import StaticLayer
 
-        layer = StaticLayer(max_cache_len=16, batch_size=1, num_heads=4, head_dim=4)
+        if Version(torch.__version__) >= Version("2.10.0"):
+            layer = StaticLayer(max_cache_len=16, batch_size=1, num_heads=4, head_dim=4)
+        else:
+            layer = StaticLayer(max_cache_len=16)
         layer.is_initialized = True
         layer.keys = _make_tensor(1, 4, 16, 8)
         layer.values = _make_tensor(1, 4, 16, 8)
@@ -202,7 +209,10 @@ class TestRegisterStaticLayer(unittest.TestCase):
         from tico.utils.pytree_utils import _flatten_static_layer
         from transformers.cache_utils import StaticLayer
 
-        layer = StaticLayer(max_cache_len=16, batch_size=1, num_heads=2, head_dim=4)
+        if Version(torch.__version__) >= Version("2.10.0"):
+            layer = StaticLayer(max_cache_len=16, batch_size=1, num_heads=2, head_dim=4)
+        else:
+            layer = StaticLayer(max_cache_len=16)
         layer.is_initialized = False
         with self.assertRaises(ValueError):
             _flatten_static_layer(layer)
@@ -375,15 +385,16 @@ class TestFlattenKeyPaths(unittest.TestCase):
         )
         from transformers.cache_utils import StaticLayer
 
-        layer = StaticLayer(max_cache_len=8, batch_size=1, num_heads=2, head_dim=4)
+        if Version(torch.__version__) >= Version("2.10.0"):
+            layer = StaticLayer(max_cache_len=8, batch_size=1, num_heads=2, head_dim=4)
+        else:
+            layer = StaticLayer(max_cache_len=8)
+
         layer.is_initialized = True
         layer.keys = _make_tensor(1, 2, 8, 4)
         layer.values = _make_tensor(1, 2, 8, 4)
         layer.dtype = layer.keys.dtype
         layer.device = layer.keys.device
-        # layer.max_batch_size = 1
-        # layer.num_heads = 2
-        # layer.head_dim = 4
 
         children, _ = _flatten_static_layer(layer)
         keyed, _ = _flatten_with_keys_static_layer(layer)

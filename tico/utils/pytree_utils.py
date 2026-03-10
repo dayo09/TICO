@@ -141,20 +141,26 @@ def register_static_cache():
 
 def _flatten_static_layer(layer) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
     """Split a StaticLayer into (tensor children, static metadata)."""
-    if not layer.is_initialized:
+    if not getattr(layer, "is_initialized", False):
         raise ValueError(
             f"{layer} cannot be flattened. StaticLayer must be initialized "
             "with tensors of a specific shape before use with torch.export."
         )
+
+    # 1. convert tracing tensors
     children = (layer.keys, layer.values)
+
+    # 2. extract aux with compatibility
     aux_data: Dict[str, Any] = {
-        "max_cache_len": layer.max_cache_len,
-        "is_initialized": layer.is_initialized,
-        "dtype": layer.keys.dtype,
-        "device": layer.keys.device,
-        "max_batch_size": layer.max_batch_size,
-        "num_heads": layer.num_heads,
-        "head_dim": layer.head_dim,
+        "max_cache_len": getattr(layer, "max_cache_len", 0),
+        "is_initialized": getattr(layer, "is_initialized", False),
+        "dtype": getattr(layer, "dtype", None),
+        "device": getattr(layer, "device", None),
+        "max_batch_size": getattr(
+            layer, "max_batch_size", getattr(layer, "batch_size", 0)
+        ),
+        "num_heads": getattr(layer, "num_heads", 0),
+        "head_dim": getattr(layer, "head_dim", 0),
     }
     return children, aux_data
 
@@ -164,28 +170,37 @@ def _unflatten_static_layer(children: Tuple[Any, ...], aux_data: Dict[str, Any])
     from transformers.cache_utils import StaticLayer
 
     keys, values = children
-    obj = StaticLayer(
-        max_cache_len=aux_data["max_cache_len"],
-        batch_size=aux_data["max_batch_size"],
-        num_heads=aux_data["num_heads"],
-        head_dim=aux_data["head_dim"],
-    )
-    obj.is_initialized = aux_data["is_initialized"]
+
+    # avoid __init__ signature mismatch error, depending on torch version
+    obj = object.__new__(StaticLayer)
+
+    for key, value in aux_data.items():
+        if value is not None:
+            setattr(obj, key, value)
+
+    # For compatibility
+    if not hasattr(obj, "batch_size") and "max_batch_size" in aux_data:
+        setattr(obj, "batch_size", aux_data["max_batch_size"])
+
     obj.keys = keys
     obj.values = values
-    obj.dtype = aux_data["dtype"]
-    obj.device = aux_data["device"]
-    obj.max_batch_size = aux_data["max_batch_size"]
-    obj.num_heads = aux_data["num_heads"]
-    obj.head_dim = aux_data["head_dim"]
+
     return obj
 
 
 def _flatten_with_keys_static_layer(layer):
     children, aux_data = _flatten_static_layer(layer)
+
+    # In casse of GetAttrKey does not exist in old torch version
+    KeyClass = getattr(pytree, "GetAttrKey", getattr(pytree, "MappingKey", None))
+
+    if KeyClass is None:
+        # In case of very old torch version
+        return [("keys", children[0]), ("values", children[1])], aux_data
+
     return [
-        (pytree.GetAttrKey("keys"), children[0]),
-        (pytree.GetAttrKey("values"), children[1]),
+        (KeyClass("keys"), children[0]),
+        (KeyClass("values"), children[1]),
     ], aux_data
 
 
