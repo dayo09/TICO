@@ -155,6 +155,26 @@ class TestRegisterStaticCache(unittest.TestCase):
 # StaticLayer
 # ---------------------------------------------------------------------------
 
+import inspect
+
+
+def _create_static_layer(**potential_kwargs):
+    # torch ver |
+    # ----------|------
+    # 2.6.0     | requires max_cache_len
+    # ...
+    # 2.10.0    | requires max_cache_len, batch_size, num_heads, head_dim
+    # 2.12.0.dev| requires max_cache_len
+    from transformers.cache_utils import StaticLayer
+
+    sig = inspect.signature(StaticLayer.__init__)
+    valid_params = set(sig.parameters.keys())
+
+    init_kwargs = {k: v for k, v in potential_kwargs.items() if k in valid_params}
+
+    obj = StaticLayer(**init_kwargs)
+    return obj
+
 
 @unittest.skipIf(_SKIP, _SKIP_REASON)
 class TestRegisterStaticLayer(unittest.TestCase):
@@ -172,10 +192,9 @@ class TestRegisterStaticLayer(unittest.TestCase):
 
         from transformers.cache_utils import StaticLayer
 
-        if Version(torch.__version__) >= Version("2.10.0"):
-            layer = StaticLayer(max_cache_len=16, batch_size=1, num_heads=4, head_dim=4)
-        else:
-            layer = StaticLayer(max_cache_len=16)
+        layer = _create_static_layer(
+            max_cache_len=16, batch_size=1, num_heads=4, head_dim=4
+        )
         layer.is_initialized = True
         layer.keys = _make_tensor(1, 4, 16, 8)
         layer.values = _make_tensor(1, 4, 16, 8)
@@ -209,10 +228,9 @@ class TestRegisterStaticLayer(unittest.TestCase):
         from tico.utils.pytree_utils import _flatten_static_layer
         from transformers.cache_utils import StaticLayer
 
-        if Version(torch.__version__) >= Version("2.10.0"):
-            layer = StaticLayer(max_cache_len=16, batch_size=1, num_heads=2, head_dim=4)
-        else:
-            layer = StaticLayer(max_cache_len=16)
+        layer = _create_static_layer(
+            max_cache_len=16, batch_size=1, num_heads=2, head_dim=4
+        )
         layer.is_initialized = False
         with self.assertRaises(ValueError):
             _flatten_static_layer(layer)
@@ -385,10 +403,9 @@ class TestFlattenKeyPaths(unittest.TestCase):
         )
         from transformers.cache_utils import StaticLayer
 
-        if Version(torch.__version__) >= Version("2.10.0"):
-            layer = StaticLayer(max_cache_len=8, batch_size=1, num_heads=2, head_dim=4)
-        else:
-            layer = StaticLayer(max_cache_len=8)
+        layer = _create_static_layer(
+            max_cache_len=8, batch_size=1, num_heads=2, head_dim=4
+        )
 
         layer.is_initialized = True
         layer.keys = _make_tensor(1, 2, 8, 4)
