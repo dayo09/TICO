@@ -43,12 +43,13 @@ class TestQuantQwen3VLTextModel(unittest.TestCase):
         cls.seq_len = 16
         cls.vocab_size = 512
 
+        # head_dim=8 → head_dim//2=4; mrope_section must sum to head_dim//2
         cfg = Qwen3VLTextConfig(
-            hidden_size=8,
-            intermediate_size=16,
+            hidden_size=16,
+            intermediate_size=32,
             num_attention_heads=2,
             num_key_value_heads=1,
-            head_dim=4,
+            head_dim=8,
             num_hidden_layers=2,
             attention_bias=False,
             attention_dropout=0.0,
@@ -56,6 +57,7 @@ class TestQuantQwen3VLTextModel(unittest.TestCase):
             vocab_size=cls.vocab_size,
             use_cache=False,
             return_dict=False,
+            rope_scaling={"rope_type": "default", "mrope_section": [1, 1, 2]},
         )
         if not hasattr(cfg, "_attn_implementation"):
             setattr(cfg, "_attn_implementation", "eager")

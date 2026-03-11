@@ -29,16 +29,31 @@ class QuantQwen3VLTextDecoderLayer(QuantModuleBase):
     Quant-aware drop-in replacement for HF `Qwen3VLTextDecoderLayer`.
 
     Attention & MLP blocks are replaced by their quantized counterparts.
-    A "static" causal mask and RoPE templates are pre-built in `__init__`
-    to avoid dynamic ops inside `forward`.
+    A static causal mask and RoPE templates are pre-built in `__init__` to avoid
+    dynamic ops inside `forward`.
 
     Notes
     -----
-    - Prefill-only: `use_cache` is not supported because
-      `QuantQwen3VLTextAttention` does not return KV cache.
-    - `position_embeddings` can be injected from the parent model-level wrapper
-      (shared across all layers); if omitted the layer uses its own pre-computed
-      templates as fallback.
+    Prefill-only
+        `use_cache` is not supported because `QuantQwen3VLTextAttention` does not
+        return KV cache.
+
+    position_embeddings injection
+        When used inside `QuantQwen3VLTextModel`, the parent wrapper calls the
+        model's actual `Qwen3VLTextRotaryEmbedding` and passes the resulting
+        (cos, sin) into every decoder layer.  This is the recommended path as it
+        produces exact MRoPE position encodings.
+
+    Standalone RoPE fallback limitation
+        When `position_embeddings=None` (standalone usage without a parent model
+        wrapper), this layer falls back to a simplified 1D cos/sin table computed
+        from `rope_theta`.  For Qwen3-VL this is an approximation: the model
+        actually uses MRoPE where `inv_freq` is split across three sections
+        (temporal, height, width) by `mrope_section`.  The simplified table
+        assigns frequencies uniformly and therefore does not match the original
+        model's position encodings exactly.  Calibration PEIR will be higher in
+        standalone mode for this reason; use the parent `QuantQwen3VLTextModel`
+        wrapper for accurate calibration.
     """
 
     def __init__(
@@ -158,17 +173,15 @@ class QuantQwen3VLTextDecoderLayer(QuantModuleBase):
             attention_mask = attention_mask.squeeze(0)
             attention_mask = self._fq(attention_mask, self.obs_causal_mask)
 
-        # Build position embeddings if not provided
+        # Build position embeddings if not provided; slice to actual seq_len
         if position_embeddings is None:
-            position_embeddings = (
-                self.rope_cos_template.to(
-                    dtype=hidden_states.dtype, device=hidden_states.device
-                ),
-                self.rope_sin_template.to(
-                    dtype=hidden_states.dtype, device=hidden_states.device
-                ),
+            S = hidden_states.size(1)
+            cos = self.rope_cos_template[:, :S, :].to(  # type: ignore[index]
+                dtype=hidden_states.dtype, device=hidden_states.device
             )
-            cos, sin = position_embeddings
+            sin = self.rope_sin_template[:, :S, :].to(  # type: ignore[index]
+                dtype=hidden_states.dtype, device=hidden_states.device
+            )
             position_embeddings = (
                 self._fq(cos, self.obs_cos),
                 self._fq(sin, self.obs_sin),

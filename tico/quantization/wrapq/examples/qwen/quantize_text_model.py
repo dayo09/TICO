@@ -59,9 +59,14 @@ lm_q = model.model.language_model
 assert isinstance(lm_q.wrapped, QuantQwen3VLTextModel)
 
 # -------------------------------------------------------------------------
-# Helpers: fixed-length tokenize → input_ids
+# Helpers: fixed-length tokenize → (input_ids, attention_mask)
+#
+# We return the 2D attention_mask alongside input_ids.  Passing it to the
+# model lets QuantQwen3VLTextModel combine the static causal mask with a
+# per-sequence padding correction, so padding tokens are masked out during
+# both calibration and quantized inference.
 # -------------------------------------------------------------------------
-def make_input_ids(prompt: str) -> torch.Tensor:
+def make_inputs(prompt: str):
     batch = tokenizer(
         prompt,
         return_tensors="pt",
@@ -69,7 +74,7 @@ def make_input_ids(prompt: str) -> torch.Tensor:
         truncation=True,
         max_length=MAX_SEQ,
     )
-    return batch["input_ids"]
+    return batch["input_ids"], batch["attention_mask"]
 
 
 # -------------------------------------------------------------------------
@@ -86,8 +91,8 @@ PROMPTS = [
 
 with torch.no_grad():
     for prompt in PROMPTS:
-        input_ids = make_input_ids(prompt)
-        _ = lm_q(input_ids)
+        input_ids, attention_mask = make_inputs(prompt)
+        _ = lm_q(input_ids, attention_mask=attention_mask)
 
 convert(lm_q)
 assert lm_q._mode is Mode.QUANT, "Quantization mode should be active now."
@@ -95,11 +100,11 @@ assert lm_q._mode is Mode.QUANT, "Quantization mode should be active now."
 # -------------------------------------------------------------------------
 # 3. Quick diff check (INT-sim vs FP32)
 # -------------------------------------------------------------------------
-input_ids = make_input_ids("check")
+input_ids, attention_mask = make_inputs("check")
 
 with torch.no_grad():
-    q_out = lm_q(input_ids, return_dict=False)[0]   # last_hidden_state
-    fp_out = orig_lm(input_ids, return_dict=False)[0]
+    q_out = lm_q(input_ids, attention_mask=attention_mask, return_dict=False)[0]
+    fp_out = orig_lm(input_ids, attention_mask=attention_mask, return_dict=False)[0]
 
 print("┌───────────── Quantization Error Summary ─────────────")
 print(f"│ Mean |diff|: {(q_out - fp_out).abs().mean().item():.6f}")
@@ -117,11 +122,12 @@ print(plot_two_outputs(fp_out, q_out))
 #    multiplicatively.  Even 1-2 % per layer becomes tens of percent over 28+
 #    layers.
 #
-# 2. Padding in calibration data: the static causal mask used by this wrapper is
-#    a pure upper-triangular mask and does not mask padding tokens.  Calibration
-#    sequences padded to MAX_SEQ therefore attend to padding positions that the
-#    original model would have masked, inflating the calibration statistics and
-#    the resulting PEIR.
+# 2. Padding in calibration data: even with the padding mask fix applied above,
+#    the static causal mask baked into the quantized model does not carry
+#    sequence-specific padding information.  During calibration, padding is
+#    correctly masked out, which improves observer statistics.  However, the
+#    PEIR comparison above also passes attention_mask to orig_lm, so both models
+#    see the same mask and the measurement is fair.
 #
 # PEIR is not a direct proxy for task accuracy.  Use downstream metrics
 # (e.g. perplexity, VQA score) to evaluate the quantized model's real accuracy.

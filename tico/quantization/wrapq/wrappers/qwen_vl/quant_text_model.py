@@ -31,9 +31,29 @@ class QuantQwen3VLTextModel(QuantModuleBase):
     Quant-aware drop-in replacement for the Qwen3-VL language model text backbone
     (the `language_model` sub-module inside `Qwen3VLModel`).
 
-    Pre-computes shared RoPE templates and a static causal mask once in `__init__`,
-    then passes them to every decoder layer so they are quantized exactly once
-    rather than independently in each layer.
+    Computes shared RoPE position embeddings and a static causal mask once per
+    forward pass, then passes them to every decoder layer so they are quantized
+    exactly once rather than independently in each layer.
+
+    RoPE note
+    ---------
+    Position embeddings are computed by calling the model's own `rotary_emb` module
+    (Qwen3VLTextRotaryEmbedding) directly in `forward()`, rather than using a
+    simplified 1D pre-computed table.  This is important for accuracy because
+    Qwen3-VL uses MRoPE: `inv_freq` is split into three sections (temporal, height,
+    width) via `mrope_section`, which means a naively-computed 1D cos/sin table
+    would differ from the model's actual position encodings and accumulate error
+    across all decoder layers.
+
+    Known PEIR limitation
+    ---------------------
+    PEIR measured on this full-backbone wrapper will be higher than for single-layer
+    wrappers (e.g. QuantQwen3VLTextAttention) because quantization errors from all
+    decoder layers compound multiplicatively.  This is expected behavior and does not
+    reflect task-level accuracy degradation, which should be measured via downstream
+    metrics (e.g. perplexity).  Additionally, the static causal mask does not account
+    for padding tokens in the calibration data, which can inflate PEIR further when
+    padded sequences are used.
     """
 
     def __init__(
@@ -90,37 +110,17 @@ class QuantQwen3VLTextModel(QuantModuleBase):
         mask.triu_(1)
         self.register_buffer("causal_mask_template", mask, persistent=False)
 
-        # ----- static buffers: RoPE templates --------------------------------
-        head_dim = getattr(self.config, "head_dim", None) or (
-            self.config.hidden_size // self.config.num_attention_heads
-        )
-
+        # ----- rotary embedding module ---------------------------------------
+        # Store the model's actual rotary_emb (Qwen3VLTextRotaryEmbedding) and
+        # call it dynamically in forward() to get exact MRoPE position embeddings.
+        # Using a simplified 1D pre-computed table would mis-assign frequencies
+        # across mrope_section boundaries, producing wrong cos/sin and degrading
+        # calibration accuracy significantly.
         rotary = getattr(model_fp, "rotary_emb", None)
         assert rotary is not None, (
-            "Qwen3VLTextModel must have a `rotary_emb` attribute for RoPE pre-computation"
+            "Qwen3VLTextModel must have a `rotary_emb` attribute"
         )
-        if hasattr(rotary, "inv_freq"):
-            inv_freq = rotary.inv_freq.detach().float()
-            attn_scaling = float(getattr(rotary, "attention_scaling", 1.0))
-        else:
-            base = float(getattr(self.config, "rope_theta", 10000.0))
-            inv_freq = 1.0 / (
-                base ** (torch.arange(0, head_dim, 2, dtype=torch.float32) / head_dim)
-            )
-            attn_scaling = 1.0
-
-        pos = torch.arange(max_seq, dtype=torch.float32, device=inv_freq.device)
-        freqs = torch.outer(pos, inv_freq)
-        emb = torch.cat([freqs, freqs], dim=-1)
-        cos_t = emb.cos() * attn_scaling
-        sin_t = emb.sin() * attn_scaling
-        half_dim = head_dim // 2
-        sin_t[..., :half_dim] = -sin_t[..., :half_dim]
-        cos_t = cos_t.unsqueeze(0)  # [1, max_seq, head_dim]
-        sin_t = sin_t.unsqueeze(0)  # [1, max_seq, head_dim]
-
-        self.register_buffer("rope_cos_template", cos_t, persistent=False)
-        self.register_buffer("rope_sin_template", sin_t, persistent=False)
+        self.rotary_emb = rotary
 
     def _slice_causal(self, seq_len: int, device: torch.device) -> torch.Tensor:
         assert isinstance(self.causal_mask_template, torch.Tensor)
@@ -133,14 +133,11 @@ class QuantQwen3VLTextModel(QuantModuleBase):
     def get_position_embeddings_for(
         self, hidden_states: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        return (
-            self.rope_cos_template.to(  # type: ignore[union-attr]
-                dtype=hidden_states.dtype, device=hidden_states.device
-            ),
-            self.rope_sin_template.to(  # type: ignore[union-attr]
-                dtype=hidden_states.dtype, device=hidden_states.device
-            ),
-        )
+        # Delegate to the model's actual Qwen3VLTextRotaryEmbedding so that
+        # MRoPE frequencies are split correctly by mrope_section.
+        S = hidden_states.size(1)
+        position_ids = torch.arange(S, device=hidden_states.device).unsqueeze(0)
+        return self.rotary_emb(hidden_states, position_ids)
 
     def forward(
         self,
@@ -180,9 +177,27 @@ class QuantQwen3VLTextModel(QuantModuleBase):
         hidden_states = inputs_embeds
 
         # Pre-compute shared causal mask and RoPE (quantized once, shared across layers)
+        #
+        # The static causal part is quantized once and shared across all decoder layers
+        # (suitable for on-device baking as a constant).
+        #
+        # If a 2D padding mask (attention_mask: [B, L], 1=real token, 0=padding) is
+        # provided, a padding correction is applied additively on top of the quantized
+        # causal mask.  This ensures that calibration statistics are not inflated by
+        # activations at padding positions.  The padding correction is NOT quantized
+        # separately — it is applied as a float addend at runtime.
         causal_mask = self.get_attention_mask_for(hidden_states)
         causal_mask = causal_mask.squeeze(0)
         causal_mask = self._fq(causal_mask, self.obs_causal_mask)
+
+        if attention_mask is not None and attention_mask.ndim == 2:
+            # attention_mask: [B, L], 1 = real token, 0 = padding
+            # Build additive correction: 0 for real, -120 for padding → [B, 1, L]
+            pad_corr = (1.0 - attention_mask.to(dtype=hidden_states.dtype,
+                                                 device=hidden_states.device))
+            pad_corr = pad_corr * float("-120")
+            pad_corr = pad_corr.unsqueeze(1)  # [B, 1, L]
+            causal_mask = causal_mask + pad_corr  # [B, L, L] (broadcast)
 
         position_embeddings = self.get_position_embeddings_for(hidden_states)
         cos, sin = position_embeddings
