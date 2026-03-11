@@ -98,3 +98,28 @@ class TestQuantQwen3VLTextModel(unittest.TestCase):
         self.assertGreater(diff, 0.0)
         self.assertLess(diff, 0.4)
         self.assertEqual(fp_out.shape, q_out.shape)
+
+    def test_with_padding_mask(self):
+        """Verify that a 2D padding attention_mask is accepted and changes the output.
+
+        When padding tokens are masked out, the forward result differs from the
+        fully-attended (no mask) output because padding positions no longer
+        contribute to attention weights.
+        """
+        qmodel = QuantQwen3VLTextModel(self.fp_model)
+        qmodel.enable_calibration()
+
+        inp = torch.randint(0, self.vocab_size, (1, self.seq_len))
+
+        # Simulate padding: last quarter of positions are padding tokens
+        pad_start = self.seq_len * 3 // 4
+        attn_mask = torch.ones(1, self.seq_len, dtype=torch.long)
+        attn_mask[:, pad_start:] = 0  # mark as padding
+
+        with torch.no_grad():
+            out_with_mask = qmodel(inp, attention_mask=attn_mask)[0]
+            out_no_mask = qmodel(inp)[0]
+
+        # Outputs should differ because masked attention changes activations
+        diff = (out_with_mask - out_no_mask).abs().max().item()
+        self.assertGreater(diff, 0.0)
